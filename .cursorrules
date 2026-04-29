@@ -1,0 +1,5 @@
+Always use Tailwind CSS for styling.
+Preferred language: English for UI, Chinese for internal comments.
+Project Structure: Next.js App Router (frontend), Node.js Express (backend).
+Database: Supabase (PostgreSQL).
+When writing backend code, remember the 'reports' table uses snake_case: seo_issues, screenshot_url, content_suggestions.
