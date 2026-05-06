@@ -6,7 +6,6 @@ import { useParams, useSearchParams } from "next/navigation";
 import { AlertCircle, Lightbulb, ArrowLeft, Share2, Globe, Lock, Coffee } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { loadStripe } from "@stripe/stripe-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -51,7 +50,6 @@ export default function ReportDetail() {
   const [imageLoaded, setImageLoaded] = useState(false);
   const apiUrl =
     process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi";
-  const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
   const paypalUrl = process.env.NEXT_PUBLIC_PAYPAL_ME_URL;
   const reportId = String(params.id || "");
   const isLocked = report ? !report.is_paid : false;
@@ -131,10 +129,6 @@ export default function ReportDetail() {
       toast.error("NEXT_PUBLIC_API_URL is not configured.");
       return;
     }
-    if (!stripeKey) {
-      toast.error("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not configured.");
-      return;
-    }
     if (!reportId) {
       toast.error("Invalid report id.");
       return;
@@ -159,13 +153,8 @@ export default function ReportDetail() {
       if (!response.ok) {
         throw new Error(result.error || "Failed to start checkout.");
       }
-
-      const stripe = await loadStripe(stripeKey);
-      if (!stripe) throw new Error("Stripe failed to load.");
-      const redirect = await stripe.redirectToCheckout({
-        sessionId: result.sessionId,
-      });
-      if (redirect.error) throw new Error(redirect.error.message);
+      if (!result.url) throw new Error("Stripe checkout URL missing.");
+      window.location.href = result.url;
     } catch (error: unknown) {
       toast.error(errorMessage(error, "Unable to open checkout."));
       setUnlocking(false);
