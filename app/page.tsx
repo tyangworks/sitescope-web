@@ -5,6 +5,7 @@ import { Search, Loader2, AlertCircle, Globe, Zap, ShieldCheck, TrendingUp, Arro
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { normalizeUrl } from "@/lib/normalizeUrl";
 
 // Supabase Connection
 const supabase = createClient(
@@ -12,13 +13,25 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+type RecentReport = {
+  id: string;
+  url: string;
+  score: number;
+  screenshot_url: string;
+};
+
+function errorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+}
+
 export default function Home() {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState("");
-  const [recentReports, setRecentReports] = useState<any[]>([]);
+  const [recentReports, setRecentReports] = useState<RecentReport[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const loadingMessages = [
@@ -59,18 +72,24 @@ export default function Home() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:4000/api/analyze", {
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi";
+
+      const normalizedUrl = normalizeUrl(url);
+      if (!normalizedUrl) throw new Error("Please enter a valid website URL.");
+
+      const res = await fetch(`${apiUrl}/api/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url: normalizedUrl }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       
       // Redirect to report detail page
       router.push(`/report/${data.id}`);
-    } catch (err: any) {
-      setError(err.message || "Connection failed. Make sure the server is running.");
+    } catch (error: unknown) {
+      setError(errorMessage(error, "Connection failed. Make sure the server is running."));
       setLoading(false);
     }
   };
@@ -252,15 +271,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* FOOTER */}
-      <footer className="py-12 border-t border-slate-100 text-center">
-        <div className="flex items-center justify-center gap-2 mb-4 opacity-50">
-          <div className="w-6 h-6 bg-black rounded flex items-center justify-center text-[10px] text-white font-bold">SS</div>
-          <span className="font-bold text-sm uppercase tracking-widest">SiteScope</span>
-        </div>
-        <p className="text-slate-400 text-xs font-bold">© 2026 SiteScope AI. No data tracking. Just growth.</p>
-      </footer>
 
     </main>
   );

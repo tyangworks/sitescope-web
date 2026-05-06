@@ -37,7 +37,9 @@ export default function Home() {
     setScreenshot(null);
 
     try {
-      const res = await fetch("http://localhost:4000/api/analyze", {
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi";
+      const res = await fetch(`${apiUrl}/api/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url }),
