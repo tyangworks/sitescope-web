@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useParams, useSearchParams } from "next/navigation";
-import { AlertCircle, Lightbulb, ArrowLeft, Share2, Globe, Lock, Coffee } from "lucide-react";
+import { AlertCircle, Lightbulb, ArrowLeft, Share2, Globe, Lock, Coffee, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -47,12 +47,24 @@ export default function ReportDetail() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [unlocking, setUnlocking] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const apiUrl =
     process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi";
   const paypalUrl = process.env.NEXT_PUBLIC_PAYPAL_ME_URL;
   const reportId = String(params.id || "");
   const isLocked = report ? !report.is_paid : false;
+  const freeIssues = report?.seo_issues?.slice(0, 2) || [];
+  const lockedIssues = report?.seo_issues?.slice(2) || [];
+
+  async function parseJsonSafe(response: Response) {
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      throw new Error("Server communication error. Please try again.");
+    }
+    return response.json();
+  }
 
   async function fetchReport() {
     if (!reportId) return;
@@ -77,6 +89,14 @@ export default function ReportDetail() {
   }, [reportId]);
 
   useEffect(() => {
+    const configuredAdminKey = process.env.NEXT_PUBLIC_ADMIN_KEY;
+    const localAdminKey = window.localStorage.getItem("admin_key");
+    if (configuredAdminKey && localAdminKey && localAdminKey === configuredAdminKey) {
+      setIsAdmin(true);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!searchParams || !reportId || !apiUrl) return;
     const success = searchParams.get("success");
     const canceled = searchParams.get("canceled");
@@ -93,7 +113,7 @@ export default function ReportDetail() {
         const response = await fetch(
           `${apiUrl}/api/report-payment-status?id=${encodeURIComponent(reportId)}`
         );
-        const result = await response.json();
+        const result = await parseJsonSafe(response);
         if (!response.ok) throw new Error(result.error || "Polling failed");
 
         if (result.isPaid) {
@@ -149,7 +169,7 @@ export default function ReportDetail() {
           customerEmail: email.trim(),
         }),
       });
-      const result = await response.json();
+      const result = await parseJsonSafe(response);
       if (!response.ok) {
         throw new Error(result.error || "Failed to start checkout.");
       }
@@ -158,6 +178,35 @@ export default function ReportDetail() {
     } catch (error: unknown) {
       toast.error(errorMessage(error, "Unable to open checkout."));
       setUnlocking(false);
+    }
+  }
+
+  async function handleDeleteReport() {
+    const localAdminKey = window.localStorage.getItem("admin_key");
+    if (!localAdminKey) {
+      toast.error("Admin key missing.");
+      return;
+    }
+    if (!reportId) return;
+    if (!window.confirm("Delete this report permanently?")) return;
+
+    try {
+      setDeleting(true);
+      const response = await fetch(`${apiUrl}/api/report/${encodeURIComponent(reportId)}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-key": localAdminKey,
+        },
+      });
+      const result = await parseJsonSafe(response);
+      if (!response.ok) throw new Error(result.error || "Delete failed");
+      toast.success("Report deleted.");
+      window.location.href = "/reports";
+    } catch (error: unknown) {
+      toast.error(errorMessage(error, "Failed to delete report."));
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -172,6 +221,15 @@ export default function ReportDetail() {
             <ArrowLeft className="w-4 h-4" /> 返回历史记录
           </Link>
           <div className="flex items-center gap-4">
+            {isAdmin && (
+              <button
+                onClick={handleDeleteReport}
+                disabled={deleting}
+                className="flex items-center gap-2 text-sm font-bold bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 disabled:opacity-60"
+              >
+                <Trash2 className="w-4 h-4" /> {deleting ? "Deleting..." : "Delete Report"}
+              </button>
+            )}
             <button
               onClick={() => {
                 navigator.clipboard.writeText(window.location.href);
@@ -233,13 +291,29 @@ export default function ReportDetail() {
             </div>
         </div>
 
-        <div className="relative mb-8">
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="font-bold text-lg flex items-center gap-2">
+              <AlertCircle className="text-red-500 w-5 h-5" /> SEO Issues (Free Preview)
+            </h3>
+            {freeIssues.map((item: ReportIssue, i: number) => (
+              <div key={`free-${i}`} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-bold text-slate-800">{item.issue}</h4>
+                  <span className="text-[10px] bg-slate-100 px-2 py-1 rounded font-bold uppercase">{item.impact}</span>
+                </div>
+                <p className="text-sm text-slate-500"><span className="text-green-600 font-bold">建议修复:</span> {item.fix}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="relative mb-8">
           {isLocked && (
             <div className="absolute inset-0 z-20 rounded-2xl bg-slate-900/45 backdrop-blur-[1px] flex items-center justify-center px-6">
               <div className="max-w-md w-full bg-white rounded-2xl border border-slate-200 p-6 shadow-xl">
                 <div className="flex items-center gap-2 text-slate-900 mb-3">
                   <Lock className="w-4 h-4" />
-                  <h3 className="text-lg font-bold">Unlock full report - $19 CAD</h3>
+                  <h3 className="text-lg font-bold">Unlock full actionable fix plan for $19 CAD</h3>
                 </div>
                 <p className="text-sm text-slate-600 mb-4">
                   Enter your email to continue to Stripe checkout. This unlock uses SiteScope AI Engine.
@@ -264,9 +338,9 @@ export default function ReportDetail() {
         <div className={`grid md:grid-cols-2 gap-8 ${isLocked ? "blur-sm pointer-events-none select-none" : ""}`}>
             <div className="space-y-4">
                 <h3 className="font-bold text-lg flex items-center gap-2">
-                    <AlertCircle className="text-red-500 w-5 h-5" /> 审计发现的问题
+                    <AlertCircle className="text-red-500 w-5 h-5" /> Additional SEO issues
                 </h3>
-                {(report.seo_issues || []).map((item: ReportIssue, i: number) => (
+                {lockedIssues.map((item: ReportIssue, i: number) => (
                     <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                         <div className="flex justify-between items-center mb-3">
                             <h4 className="font-bold text-slate-800">{item.issue}</h4>
@@ -279,7 +353,7 @@ export default function ReportDetail() {
 
             <div className="space-y-4">
                 <h3 className="font-bold text-lg flex items-center gap-2">
-                    <Lightbulb className="text-amber-500 w-5 h-5" /> 增长与转化建议
+                    <Lightbulb className="text-amber-500 w-5 h-5" /> Content Suggestions / Fix Plan
                 </h3>
                 {(report.content_suggestions || []).map((item: ReportSuggestion, i: number) => (
                     <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -288,6 +362,7 @@ export default function ReportDetail() {
                     </div>
                 ))}
             </div>
+        </div>
         </div>
         </div>
 
