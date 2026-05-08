@@ -1,26 +1,477 @@
-@import "tailwindcss";
+"use client";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+import { useParams, useSearchParams } from "next/navigation";
+import { 
+  AlertCircle, 
+  Lightbulb, 
+  ArrowLeft, 
+  Share2, 
+  Globe, 
+  Lock, 
+  Coffee, 
+  Trash2,
+  CheckCircle2,
+  Loader2,
+  Zap,
+  Code,
+  FileText
+} from "lucide-react";
+import Link from "next/link";
+import { toast } from "sonner";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+// Type definitions
+type ReportIssue = {
+  issue: string;
+  impact: string;
+  fix: string;
+};
+
+type ReportSuggestion = {
+  area: string;
+  suggestion: string;
+};
+
+type FixPlan = {
+  step: number;
+  action: string;
+  code_snippet?: string;
+  priority: "high" | "medium" | "low";
+};
+
+type ReportRecord = {
+  id: string;
+  url: string;
+  created_at: string;
+  score: number;
+  summary: string;
+  screenshot_url: string;
+  is_paid: boolean;
+  seo_issues: ReportIssue[] | null;
+  content_suggestions: ReportSuggestion[] | null;
+  fix_plans?: FixPlan[] | null;
+};
+
+function errorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+export default function ReportDetail() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const [report, setReport] = useState<ReportRecord | null>(null);
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [unlocking, setUnlocking] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [emailSubmitted, setEmailSubmitted] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
+  
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi";
+  const paypalUrl = process.env.NEXT_PUBLIC_PAYPAL_ME_URL;
+  const reportId = String(params.id || "");
+  const isLocked = report ? !report.is_paid : false;
+  
+  // Tier 1: Free - Top 3 issues
+  const freeIssues = report?.seo_issues?.slice(0, 3) || [];
+  // Tier 2: Email unlock - Remaining issues
+  const lockedIssues = report?.seo_issues?.slice(3) || [];
+  // Tier 3: Pro - Fix plans and code snippets
+  const fixPlans = report?.fix_plans || [];
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  const loadingSteps = [
+    { icon: <Globe className="w-5 h-5" />, text: "Fetching site structure" },
+    { icon: <Zap className="w-5 h-5" />, text: "Running performance tests" },
+    { icon: <AlertCircle className="w-5 h-5" />, text: "Checking SEO signals" },
+    { icon: <Lightbulb className="w-5 h-5" />, text: "Generating AI insights..." },
+  ];
+
+  async function parseJsonSafe(response: Response) {
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      throw new Error("Server communication error. Please try again.");
+    }
+    return response.json();
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+  async function fetchReport() {
+    if (!reportId) return;
+    try {
+      const { data, error } = await supabase
+        .from("reports")
+        .select("*")
+        .eq("id", reportId)
+        .single();
+      if (error) throw error;
+      setReport(data as ReportRecord);
+    } catch (error: unknown) {
+      toast.error(errorMessage(error, "Failed to load report."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void fetchReport();
+  }, [reportId]);
+
+  useEffect(() => {
+    const configuredAdminKey = process.env.NEXT_PUBLIC_ADMIN_KEY;
+    const localAdminKey = window.localStorage.getItem("admin_key");
+    if (configuredAdminKey && localAdminKey && localAdminKey === configuredAdminKey) {
+      setIsAdmin(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!searchParams || !reportId || !apiUrl) return;
+    const success = searchParams.get("success");
+    const canceled = searchParams.get("canceled");
+    if (canceled === "true") {
+      toast.message("Checkout was canceled.");
+    }
+
+    if (success !== "true") return;
+
+    let tries = 0;
+    const maxTries = 90;
+    const poll = async () => {
+      try {
+        const response = await fetch(
+          `${apiUrl}/api/report-payment-status?id=${encodeURIComponent(reportId)}`
+        );
+        const result = await parseJsonSafe(response);
+        if (!response.ok) throw new Error(result.error || "Polling failed");
+
+        if (result.isPaid) {
+          await fetchReport();
+          toast.success("Payment confirmed. Report unlocked.");
+          return true;
+        }
+      } catch (error: unknown) {
+        if (tries === 0) {
+          toast.error(errorMessage(error, "Could not verify payment yet."));
+        }
+      }
+      return false;
+    };
+
+    const timer = setInterval(async () => {
+      tries += 1;
+      const done = await poll();
+      if (done || tries >= maxTries) {
+        clearInterval(timer);
+        if (!done) {
+          toast.message("Still processing payment. Please refresh in a moment.");
+        }
+      }
+    }, 2000);
+
+    return () => clearInterval(timer);
+  }, [searchParams, reportId, apiUrl]);
+
+  async function handleEmailUnlock() {
+    if (!email) {
+      toast.error("Please enter your email address.");
+      return;
+    }
+    
+    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    if (!validEmail) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    try {
+      // Store email in Supabase for marketing
+      const { error } = await supabase
+        .from("email_unlocks")
+        .insert([
+          {
+            report_id: reportId,
+            email: email.trim(),
+            created_at: new Date().toISOString(),
+          },
+        ]);
+
+      if (error) throw error;
+
+      setEmailSubmitted(true);
+      toast.success("Email submitted! Full report unlocked.");
+    } catch (error: unknown) {
+      toast.error(errorMessage(error, "Failed to submit email."));
+    }
+  }
+
+  async function handleProUnlock() {
+    if (!apiUrl) {
+      toast.error("NEXT_PUBLIC_API_URL is not configured.");
+      return;
+    }
+    if (!reportId) {
+      toast.error("Invalid report id.");
+      return;
+    }
+    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    if (!validEmail) {
+      toast.error("Enter a valid email to continue.");
+      return;
+    }
+
+    try {
+      setUnlocking(true);
+      const response = await fetch(`${apiUrl}/api/create-checkout-session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reportId,
+          customerEmail: email.trim(),
+        }),
+      });
+      const result = await parseJsonSafe(response);
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to start checkout.");
+      }
+      if (!result.url) throw new Error("Stripe checkout URL missing.");
+      window.location.href = result.url;
+    } catch (error: unknown) {
+      toast.error(errorMessage(error, "Unable to open checkout."));
+      setUnlocking(false);
+    }
+  }
+
+  async function handleDeleteReport() {
+    const localAdminKey = window.localStorage.getItem("admin_key");
+    if (!localAdminKey) {
+      toast.error("Admin key missing.");
+      return;
+    }
+    if (!reportId) return;
+    if (!window.confirm("Delete this report permanently?")) return;
+
+    try {
+      setDeleting(true);
+      const response = await fetch(`${apiUrl}/api/report/${encodeURIComponent(reportId)}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-key": localAdminKey,
+        },
+      });
+      const result = await parseJsonSafe(response);
+      if (!response.ok) throw new Error(result.error || "Delete failed");
+      toast.success("Report deleted.");
+      window.location.href = "/reports";
+    } catch (error: unknown) {
+      toast.error(errorMessage(error, "Failed to delete report."));
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  // Loading state with step progress
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#0B0F1A] flex items-center justify-center p-6">
+        <div className="max-w-md w-full text-center">
+          <div className="mb-8">
+            <Loader2 className="w-16 h-16 mx-auto text-[#3A8DFF] animate-spin" />
+          </div>
+          
+          <h2 className="text-2xl font-bold text-white mb-4">Analyzing Your Website</h2>
+          <p className="text-[#9CA3AF] mb-8">Estimated time: 20-30 seconds. Real value takes time.</p>
+          
+          <div className="space-y-4">
+            {loadingSteps.map((step, index) => (
+              <div
+                key={index}
+                className={`flex items-center gap-4 p-4 rounded-xl transition-all ${
+                  index === loadingStep
+                    ? "bg-[#111827] border border-[#3A8DFF] pulse-glow"
+                    : index < loadingStep
+                    ? "bg-[#111827] border border-[#00C2A8]"
+                    : "bg-[#111827] border border-[#1F2937] opacity-50"
+                }`}
+              >
+                <div className={`flex-shrink-0 ${
+                  index === loadingStep ? "text-[#3A8DFF]" : 
+                  index < loadingStep ? "text-[#00C2A8]" : "text-[#6B7280]"
+                }`}>
+                  {index < loadingStep ? <CheckCircle2 className="w-5 h-5" /> : step.icon}
+                </div>
+                <span className={`text-sm font-medium ${
+                  index === loadingStep ? "text-white" : 
+                  index < loadingStep ? "text-[#00C2A8]" : "text-[#6B7280]"
+                }`}>
+                  {step.text}
+                </span>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-8 w-full h-2 bg-[#111827] rounded-full overflow-hidden">
+            <div 
+              className="h-full gradient-bg transition-all duration-500"
+              style={{ width: `${((loadingStep + 1) / loadingSteps.length) * 100}%` }}
+            />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!report) {
+    return (
+      <main className="min-h-screen bg-[#0B0F1A] flex items-center justify-center p-6">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">Report Not Found</h2>
+          <p className="text-[#9CA3AF] mb-6">This report may have been deleted or doesn't exist.</p>
+          <Link 
+            href="/reports" 
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl gradient-bg text-white font-semibold hover:opacity-90 transition-all"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Reports
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "from-green-400 to-emerald-500";
+    if (score >= 60) return "from-yellow-400 to-orange-500";
+    return "from-red-400 to-rose-500";
+  };
+
+  const getScoreLabel = (score: number) => {
+    if (score >= 80) return "Excellent";
+    if (score >= 60) return "Good";
+    if (score >= 40) return "Fair";
+    return "Needs Improvement";
+  };
+
+  return (
+    <main className="min-h-screen bg-[#0B0F1A] pb-20">
+      {/* Navigation */}
+      <nav className="bg-[#0B0F1A]/80 backdrop-blur-md border-b border-[#1F2937] sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/reports" className="flex items-center gap-2 text-[#9CA3AF] hover:text-white transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            <span className="font-semibold">Back to Reports</span>
+          </Link>
+          <div className="flex items-center gap-4">
+            {isAdmin && (
+              <button
+                onClick={handleDeleteReport}
+                disabled={deleting}
+                className="flex items-center gap-2 text-sm font-bold bg-red-500/10 text-red-500 px-4 py-2 rounded-xl hover:bg-red-500/20 disabled:opacity-60 transition-all"
+              >
+                <Trash2 className="w-4 h-4" />
+                {deleting ? "Deleting..." : "Delete Report"}
+              </button>
+            )}
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                toast.success("Share link copied to clipboard!");
+              }}
+              className="flex items-center gap-2 text-sm font-bold bg-[#111827] text-white px-4 py-2 rounded-xl border border-[#1F2937] hover:border-[#3A8DFF] transition-all"
+            >
+              <Share2 className="w-4 h-4" />
+              Share
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-7xl mx-auto px-6 mt-10">
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 text-[#3A8DFF] mb-3">
+              <Globe className="w-5 h-5" />
+              <span className="text-sm font-bold uppercase tracking-wider">Site Report</span>
+            </div>
+            <h1 className="text-3xl lg:text-4xl font-black text-white mb-2 leading-tight">
+              {report.url}
+            </h1>
+            <p className="text-[#9CA3AF]">
+              Generated on {new Date(report.created_at).toLocaleDateString()}
+            </p>
+          </div>
+          
+          {/* Score Card */}
+          <div className="bg-[#111827] px-8 py-6 rounded-2xl border border-[#1F2937] shadow-xl">
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <svg className="w-24 h-24 transform -rotate-90">
+                  <circle
+                    cx="48"
+                    cy="48"
+                    r="40"
+                    stroke="#1F2937"
+                    strokeWidth="8"
+                    fill="none"
+                  />
+                  <circle
+                    cx="48"
+                    cy="48"
+                    r="40"
+                    stroke="url(#gradient)"
+                    strokeWidth="8"
+                    fill="none"
+                    strokeDasharray={`${(report.score / 100) * 251.2} 251.2`}
+                    strokeLinecap="round"
+                    className="transition-all duration-1000"
+                  />
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#3A8DFF" />
+                      <stop offset="100%" stopColor="#00C2A8" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-3xl font-black text-white">{report.score}</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-sm font-bold text-[#6B7280] uppercase mb-1">
+                  Overall Score
+                </div>
+                <div className={`text-lg font-bold bg-gradient-to-r ${getScoreColor(report.score)} bg-clip-text text-transparent`}>
+                  {getScoreLabel(report.score)}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Screenshot and Summary */}
+        <div className="grid lg:grid-cols-3 gap-8 mb-12">
+          <div className="lg:col-span-2 bg-[#111827] rounded-2xl p-4 border border-[#1F2937] shadow-xl">
+            <div className="rounded-xl overflow-hidden aspect-video bg-[#0B0F1A] relative border border-[#1F2937]">
+              {!imageLoaded && (
+                <div className="absolute inset-0 animate-pulse bg-[#111827]" />
+              )}
+              <img
+                src={report.screenshot_url}
+                alt="Site preview"
+                className="w-full h-full object-contain"
+                onLoad={() => setImageLoaded(true)}
+              />
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-[#3A8DFF] to-[#00
