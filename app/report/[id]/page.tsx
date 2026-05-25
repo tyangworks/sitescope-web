@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useParams, useSearchParams } from "next/navigation";
 import {
@@ -106,7 +106,7 @@ export default function ReportDetail() {
     return response.json();
   }
 
-  async function fetchReport() {
+  const fetchReport = useCallback(async () => {
     if (!reportId) return;
     try {
       const { data, error } = await supabase
@@ -121,22 +121,23 @@ export default function ReportDetail() {
     } finally {
       setLoading(false);
     }
-  }
-
-  useEffect(() => {
-    void fetchReport();
   }, [reportId]);
 
   useEffect(() => {
-    const configuredAdminKey = process.env.NEXT_PUBLIC_ADMIN_KEY;
-    const localAdminKey = window.localStorage.getItem("admin_key");
-    if (
-      configuredAdminKey &&
-      localAdminKey &&
-      localAdminKey === configuredAdminKey
-    ) {
-      setIsAdmin(true);
-    }
+    const timer = window.setTimeout(() => {
+      void fetchReport();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [fetchReport]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const localAdminKey = window.localStorage.getItem("admin_key");
+      setIsAdmin(Boolean(localAdminKey));
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -186,7 +187,7 @@ export default function ReportDetail() {
     }, 2000);
 
     return () => clearInterval(timer);
-  }, [searchParams, reportId, apiUrl]);
+  }, [searchParams, reportId, apiUrl, fetchReport]);
 
   async function handleEmailUnlock() {
     if (!email) {
@@ -368,7 +369,7 @@ export default function ReportDetail() {
             Report Not Found
           </h2>
           <p className="text-[#9CA3AF] mb-6">
-            This report may have been deleted or doesn't exist.
+            This report may have been deleted or does not exist.
           </p>
           <Link
             href="/reports"

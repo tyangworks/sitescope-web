@@ -7,6 +7,11 @@ import { useTranslation } from "@/lib/i18n";
 import { toast } from "sonner";
 import { supabase, authProviders } from "@/lib/auth";
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,7 +24,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -28,18 +33,18 @@ export default function LoginPage() {
 
       toast.success("Login successful!");
       window.location.href = "/reports";
-    } catch (error: any) {
-      toast.error(error.message || "Login failed");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Login failed"));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOAuthLogin = async (provider: 'google' | 'azure') => {
+  const handleOAuthLogin = async (provider: "google" | "azure") => {
     setOauthLoading(provider);
     
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
@@ -49,8 +54,8 @@ export default function LoginPage() {
       if (error) throw error;
 
       // OAuth 会自动重定向，这里不需要手动处理
-    } catch (error: any) {
-      toast.error(error.message || `${provider} login failed`);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, `${provider} login failed`));
       setOauthLoading(null);
     }
   };
