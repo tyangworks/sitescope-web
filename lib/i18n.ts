@@ -119,7 +119,7 @@ export const translations: Record<Language, Translations> = {
       heroTitle: "See What's Holding Your",
       heroSubtitle:
         "AI-powered website audits that show you exactly what to fix — and how to grow faster. No sign-up required.",
-      heroPlaceholder: "Enter your website URL (e.g. https://site.com)",
+      heroPlaceholder: "Enter your website, e.g. example.com",
       heroButton: "Get Free Audit",
       recentAudits: "Recently Analyzed Sites",
       painPointsTitle: "Most websites don't fail because of traffic.",
@@ -185,9 +185,9 @@ export const translations: Record<Language, Translations> = {
       continueWithMicrosoft: "Continue with Microsoft",
     },
     cta: {
-      title: "Get Your Custom Website",
+      title: "Contact Us",
       subtitle:
-        "Tell us about your project and we'll create a high-performance website for you",
+        "Tell us what you need and we will help you choose the right next step.",
       email: "Email",
       companyName: "Company Name",  // 添加公司名字段
       website: "Website (Optional)",  // 网站改为可选
@@ -218,7 +218,7 @@ export const translations: Record<Language, Translations> = {
       heroTitle: "发现阻碍你",
       heroSubtitle:
         "AI驱动的网站审计，准确告诉你需要修复什么——以及如何更快增长。无需注册。",
-      heroPlaceholder: "输入你的网站URL (例如 https://site.com)",
+      heroPlaceholder: "输入网站，例如 example.com",
       heroButton: "获取免费审计",
       recentAudits: "最近分析的网站",
       painPointsTitle: "大多数网站失败不是因为流量。",
@@ -282,8 +282,8 @@ export const translations: Record<Language, Translations> = {
     continueWithMicrosoft: "使用 Microsoft 继续",
     },
     cta: {
-      title: "获取您的定制网站",
-      subtitle: "告诉我们您的项目信息，我们将为您创建高性能网站",
+      title: "联系我们",
+      subtitle: "告诉我们您的需求，我们会帮您选择合适的下一步。",
       email: "邮箱",
       companyName: "公司名称",  // 添加公司名字段
       website: "网站（可选）",  // 网站改为可选

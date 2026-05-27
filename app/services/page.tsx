@@ -1,294 +1,195 @@
-"use client";
-
-import { useState } from "react";
-import Link from "next/link"; // 修复：使用默认导入
+import type { Metadata } from "next";
+import Link from "next/link";
 import {
+  ArrowRight,
+  Building2,
+  Gauge,
   Globe,
-  ArrowLeft,
-  Loader2,
-  Mail,
-  Globe as WebIcon,
-  Target,
-  MessageSquare,
+  SearchCheck,
+  Sparkles,
 } from "lucide-react";
-import { useTranslation } from "@/lib/i18n";
-import { toast } from "sonner";
+
+export const metadata: Metadata = {
+  title: "Services | SiteScope",
+  description:
+    "AI website audits, optimization, redesign, and enterprise growth solutions from SiteScope.",
+};
+
+const services = [
+  {
+    id: "ai-website-audit",
+    title: "AI Website Audit",
+    zh: "发现问题。",
+    description:
+      "Find the hidden conversion, SEO, performance, and structure problems holding your website back.",
+    icon: SearchCheck,
+    points: [
+      "AI-powered website diagnosis",
+      "SEO, UX, content, and CTA review",
+      "Clear priorities instead of guesswork",
+    ],
+    cta: "Start with a free audit",
+    href: "/",
+  },
+  {
+    id: "website-optimization",
+    title: "Website Optimization",
+    zh: "解决问题。",
+    description:
+      "Turn audit findings into practical improvements across speed, messaging, layout, and conversion flow.",
+    icon: Gauge,
+    points: [
+      "Performance and mobile experience fixes",
+      "Conversion-focused page structure",
+      "Messaging and content improvements",
+    ],
+    cta: "Talk to us",
+    href: "/contact",
+  },
+  {
+    id: "website-build-redesign",
+    title: "Website Build & Redesign",
+    zh: "重建增长系统。",
+    description:
+      "Build or rebuild a modern website designed around trust, clarity, conversion, and measurable growth.",
+    icon: Sparkles,
+    points: [
+      "High-converting website redesign",
+      "Landing pages and service pages",
+      "Modern frontend implementation",
+    ],
+    cta: "Plan a rebuild",
+    href: "/contact",
+  },
+  {
+    id: "enterprise-solutions",
+    title: "Enterprise Solutions",
+    zh: "高级定制。",
+    description:
+      "Custom audit workflows, reporting, integrations, and optimization systems for larger teams.",
+    icon: Building2,
+    points: [
+      "Custom scoring and reporting",
+      "Team workflows and integrations",
+      "Advanced website growth systems",
+    ],
+    cta: "Discuss enterprise needs",
+    href: "/contact",
+  },
+];
 
 export default function ServicesPage() {
-  
-  const [formData, setFormData] = useState({
-    email: "",
-    companyName: "", // 公司名
-    website: "",
-    goal: "",
-    message: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const { t, language, setLanguage } = useTranslation();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    // Simulate form submission - replace with actual API call
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("Request submitted successfully!");
-      setFormData({
-        email: "",
-        companyName: "",
-        website: "",
-        goal: "",
-        message: "",
-      });
-    }, 1500);
-  };
-
   return (
-    <main className="min-h-screen bg-[#0B0F1A]">
-      {/* Navigation */}
-      <nav className="bg-[#0B0F1A]/80 backdrop-blur-md border-b border-[#1F2937] sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <main className="min-h-screen bg-[#0B0F1A] text-white">
+      <nav className="sticky top-0 z-50 border-b border-gray-800 bg-[#0B0F1A]/85 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-[#3A8DFF] to-[#00C2A8] rounded-lg flex items-center justify-center">
-              <Globe className="text-white w-4 h-4" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-teal-400">
+              <Globe className="h-4 w-4 text-white" />
             </div>
-            <span className="font-bold text-white">SiteScope</span>
+            <span className="font-bold tracking-tight">SiteScope</span>
           </Link>
-
-          <div className="flex items-center gap-4">
-            {/* Language Switcher */}
-            <div className="flex items-center gap-2 bg-[#111827] rounded-lg p-1 border border-[#1F2937]">
-              <button
-                onClick={() => setLanguage("en")}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
-                  language === "en"
-                    ? "bg-[#3A8DFF] text-white"
-                    : "text-[#9CA3AF] hover:text-white"
-                }`}
-              >
-                EN
-              </button>
-              <button
-                onClick={() => setLanguage("zh")}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
-                  language === "zh"
-                    ? "bg-[#3A8DFF] text-white"
-                    : "text-[#9CA3AF] hover:text-white"
-                }`}
-              >
-                中
-              </button>
-            </div>
-
-            <Link
-              href="/login"
-              className="px-4 py-2 rounded-xl gradient-bg text-white font-semibold hover:opacity-90 transition-all"
-            >
-              {t.nav.login}
+          <div className="flex items-center gap-5 text-sm font-semibold text-gray-300">
+            <Link href="/content" className="transition-colors hover:text-white">
+              Content
+            </Link>
+            <Link href="/contact" className="transition-colors hover:text-white">
+              Contact Us
             </Link>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        {/* Back Button */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-[#9CA3AF] hover:text-white transition-colors mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {t.common.back}
-        </Link>
-
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
-            {t.cta.title}
+      <section className="border-b border-gray-800 px-6 py-16 md:py-20">
+        <div className="mx-auto max-w-6xl">
+          <p className="mb-4 text-sm font-black uppercase tracking-wide text-teal-300">
+            Services
+          </p>
+          <h1 className="max-w-3xl text-4xl font-black leading-tight tracking-tight md:text-6xl">
+            From audit to growth system
           </h1>
-          <p className="text-[#9CA3AF] text-lg max-w-2xl mx-auto">
-            {t.cta.subtitle}
+          <p className="mt-6 max-w-2xl text-lg font-medium leading-relaxed text-gray-300 md:text-xl">
+            Choose the right level of help: discover what is broken, fix what
+            matters, rebuild what limits growth, or design a custom enterprise
+            workflow.
           </p>
         </div>
+      </section>
 
-        {/* Form Card */}
-        <div className="bg-[#111827] rounded-2xl p-8 border border-[#1F2937] shadow-xl">
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-white mb-2">
-                {t.cta.email} *
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280]" />
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  placeholder={t.report.enterEmail}
-                  className="w-full bg-[#0B0F1A] border border-[#1F2937] rounded-xl pl-10 pr-4 py-3 outline-none focus:border-[#3A8DFF] focus:ring-2 focus:ring-[#3A8DFF]/20 text-white placeholder-[#6B7280] transition-all"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Company Name (必填) */}
-            <div>
-              <label className="block text-sm font-medium text-white mb-2">
-                Company Name *
-              </label>
-              <div className="relative">
-                <Target className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280]" />
-                <input
-                  type="text"
-                  value={formData.companyName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, companyName: e.target.value })
-                  }
-                  placeholder="Your Company Name"
-                  className="w-full bg-[#0B0F1A] border border-[#1F2937] rounded-xl pl-10 pr-4 py-3 outline-none focus:border-[#3A8DFF] focus:ring-2 focus:ring-[#3A8DFF]/20 text-white placeholder-[#6B7280] transition-all"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Website  (可选) */}
-            <div>
-              <label className="block text-sm font-medium text-white mb-2">
-                Website (Optional)
-              </label>
-              <div className="relative">
-                <WebIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280]" />
-                <input
-                  type="url"
-                  value={formData.website}
-                  onChange={(e) =>
-                    setFormData({ ...formData, website: e.target.value })
-                  }
-                  placeholder="https://yourwebsite.com"
-                  className="w-full bg-[#0B0F1A] border border-[#1F2937] rounded-xl pl-10 pr-4 py-3 outline-none focus:border-[#3A8DFF] focus:ring-2 focus:ring-[#3A8DFF]/20 text-white placeholder-[#6B7280] transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Goal */}
-            <div>
-              <label className="block text-sm font-medium text-white mb-2">
-                {t.cta.goal}
-              </label>
-              <div className="relative">
-                <Target className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280]" />
-                <select
-                  value={formData.goal}
-                  onChange={(e) =>
-                    setFormData({ ...formData, goal: e.target.value })
-                  }
-                  className="w-full bg-[#0B0F1A] border border-[#1F2937] rounded-xl pl-10 pr-4 py-3 outline-none focus:border-[#3A8DFF] focus:ring-2 focus:ring-[#3A8DFF]/20 text-white transition-all appearance-none cursor-pointer"
-                >
-                  <option value="" className="bg-[#111827]">
-                    Select your goal
-                  </option>
-                  <option value="redesign" className="bg-[#111827]">
-                    Website Redesign
-                  </option>
-                  <option value="performance" className="bg-[#111827]">
-                    Performance Optimization
-                  </option>
-                  <option value="seo" className="bg-[#111827]">
-                    SEO Improvement
-                  </option>
-                  <option value="conversion" className="bg-[#111827]">
-                    Conversion Rate Optimization
-                  </option>
-                  <option value="new" className="bg-[#111827]">
-                    New Website Build
-                  </option>
-                  <option value="other" className="bg-[#111827]">
-                    Other
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            {/* Message */}
-            <div>
-              <label className="block text-sm font-medium text-white mb-2">
-                {t.cta.message}
-              </label>
-              <div className="relative">
-                <MessageSquare className="absolute left-3 top-3 w-5 h-5 text-[#6B7280]" />
-                <textarea
-                  value={formData.message}
-                  onChange={(e) =>
-                    setFormData({ ...formData, message: e.target.value })
-                  }
-                  placeholder="Tell us more about your project..."
-                  rows={4}
-                  className="w-full bg-[#0B0F1A] border border-[#1F2937] rounded-xl pl-10 pr-4 py-3 outline-none focus:border-[#3A8DFF] focus:ring-2 focus:ring-[#3A8DFF]/20 text-white placeholder-[#6B7280] transition-all resize-none"
-                />
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full gradient-bg text-white font-semibold rounded-xl py-4 hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-60 text-lg"
+      <section className="mx-auto grid max-w-6xl gap-6 px-6 py-12 md:grid-cols-2 md:py-16">
+        {services.map((service, index) => {
+          const Icon = service.icon;
+          return (
+            <article
+              id={service.id}
+              key={service.id}
+              className="rounded-2xl border border-gray-800 bg-[#111827] p-6 transition-all hover:border-teal-400/60"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  {t.common.loading}
-                </>
-              ) : (
-                t.cta.submit
-              )}
-            </button>
-          </form>
-          {/* Info */}
-          <div className="mt-6 p-4 bg-[#0B0F1A] rounded-xl border border-[#1F2937]">
-            <p className="text-sm text-[#9CA3AF] text-center">
-              🚀 Our team will review your request and get back to you within 24
-              hours.
-            </p>
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
+                  <Icon className="h-6 w-6" />
+                </div>
+                <div>
+                  <div className="text-sm font-black text-gray-500">
+                    0{index + 1}
+                  </div>
+                  <h2 className="mt-1 text-2xl font-black text-white">
+                    {service.title}
+                  </h2>
+                  <p className="mt-2 text-lg font-black text-teal-300">
+                    {service.zh}
+                  </p>
+                </div>
+              </div>
+
+              <p className="mt-6 leading-relaxed text-gray-300">
+                {service.description}
+              </p>
+
+              <ul className="mt-6 space-y-3 text-sm font-semibold text-gray-300">
+                {service.points.map((point) => (
+                  <li key={point} className="flex gap-3">
+                    <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-teal-300" />
+                    {point}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href={service.href}
+                className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white/10 px-5 py-3 text-sm font-black text-white transition-all hover:bg-white/15"
+              >
+                {service.cta}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </article>
+          );
+        })}
+      </section>
+
+      <section className="px-6 pb-20">
+        <div className="mx-auto max-w-6xl rounded-2xl border border-teal-400/30 bg-teal-400/10 p-8 text-center">
+          <h2 className="text-3xl font-black">Not sure what you need?</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-gray-300">
+            Start with a free audit, then use the results to decide whether you
+            need optimization, a rebuild, or a custom solution.
+          </p>
+          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link
+              href="/"
+              className="rounded-xl bg-gradient-to-r from-blue-500 to-teal-400 px-6 py-3 font-black text-white hover:opacity-90"
+            >
+              Get Free Audit
+            </Link>
+            <Link
+              href="/contact"
+              className="rounded-xl border border-gray-700 px-6 py-3 font-black text-white hover:border-teal-300"
+            >
+              Contact Us
+            </Link>
           </div>
         </div>
-
-        {/* Features */}
-        <div className="mt-12 grid md:grid-cols-3 gap-6">
-          {[
-            {
-              icon: <Globe className="w-6 h-6" />,
-              title: "Custom Design",
-              desc: "Unique designs tailored to your brand",
-            },
-            {
-              icon: <Target className="w-6 h-6" />,
-              title: "Performance First",
-              desc: "Lightning-fast load times",
-            },
-            {
-              icon: <MessageSquare className="w-6 h-6" />,
-              title: "SEO Optimized",
-              desc: "Built to rank on search engines",
-            },
-          ].map((feature, i) => (
-            <div
-              key={i}
-              className="bg-[#111827] p-6 rounded-xl border border-[#1F2937] text-center hover:border-[#3A8DFF]/50 transition-all"
-            >
-              <div className="w-12 h-12 mx-auto mb-4 bg-[#3A8DFF]/20 rounded-lg flex items-center justify-center text-[#3A8DFF]">
-                {feature.icon}
-              </div>
-              <h3 className="font-bold text-white mb-2">{feature.title}</h3>
-              <p className="text-sm text-[#9CA3AF]">{feature.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      </section>
     </main>
   );
 }

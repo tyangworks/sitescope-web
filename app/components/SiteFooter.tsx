@@ -1,9 +1,6 @@
 import Link from "next/link";
 
 export default function SiteFooter() {
-  const contactEmail =
-    process.env.NEXT_PUBLIC_CONTACT_EMAIL || "support@sitescope.fyi";
-
   return (
     <footer className="py-10 border-t border-slate-100 bg-white">
       <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
@@ -17,12 +14,12 @@ export default function SiteFooter() {
           <Link className="text-slate-600 hover:text-slate-900" href="/terms">
             Terms
           </Link>
-          <a
+          <Link
             className="text-slate-600 hover:text-slate-900"
-            href={`mailto:${contactEmail}`}
+            href="/contact"
           >
             Contact Us
-          </a>
+          </Link>
         </div>
       </div>
     </footer>

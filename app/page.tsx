@@ -5,7 +5,7 @@ import { Loader2, AlertCircle, Globe, MousePointer2 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { normalizeUrl } from "@/lib/normalizeUrl";
+import { normalizeUrlInput } from "@/lib/normalizeUrl";
 import { useTranslation } from "@/lib/i18n"; // 添加翻译 hook
 
 // Supabase Connection
@@ -35,6 +35,7 @@ export default function Home() {
   const [recentReports, setRecentReports] = useState<RecentReport[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const { t, language, setLanguage } = useTranslation(); // 添加翻译 hook
+  const normalizedPreview = normalizeUrlInput(url);
 
   const loadingMessages = [
     "🚀 Initializing cloud browser...",
@@ -71,21 +72,25 @@ export default function Home() {
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url) return;
-    setLoading(true);
+    const normalizedUrl = normalizeUrlInput(url);
+
+    if (!normalizedUrl.url) {
+      setError(normalizedUrl.error);
+      return;
+    }
+
+    setUrl(normalizedUrl.url);
     setError("");
+    setLoading(true);
 
     try {
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi";
 
-      const normalizedUrl = normalizeUrl(url);
-      if (!normalizedUrl) throw new Error("Please enter a valid website URL.");
-
       const res = await fetch(`${apiUrl}/api/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: normalizedUrl }),
+        body: JSON.stringify({ url: normalizedUrl.url }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -119,7 +124,7 @@ export default function Home() {
           <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-300">
             <Link href="/" className="hover:text-white transition-colors">{t.nav.analyze}</Link>
             <Link href="#pricing" className="hover:text-white transition-colors">{t.nav.pricing}</Link>
-            <Link href="#content" className="hover:text-white transition-colors">{t.nav.content}</Link>
+            <Link href="/content" className="hover:text-white transition-colors">{t.nav.content}</Link>
             <Link href="/services" className="hover:text-white transition-colors">{t.nav.services}</Link>
             <Link href="/reports" className="hover:text-white transition-colors">{t.nav.history}</Link>
   
@@ -182,7 +187,7 @@ export default function Home() {
               {t.nav.pricing}
             </Link>
             <Link
-              href="#content"
+              href="/content"
               className="block py-2 text-gray-300 hover:text-white transition-colors"
             >
               {t.nav.content}
@@ -255,12 +260,25 @@ export default function Home() {
               <div className="flex-1 flex items-center pl-4 w-full">
                 <MousePointer2 className="text-gray-500 w-6 h-6 mr-3" />
                 <input
-                  type="url"
+                  type="text"
+                  inputMode="url"
                   value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="Enter your website URL (e.g. https://site.com)"
+                  onBlur={() => {
+                    const normalized = normalizeUrlInput(url);
+                    if (normalized.url) setUrl(normalized.url);
+                  }}
+                  onChange={(e) => {
+                    setUrl(e.target.value);
+                    if (error) setError("");
+                  }}
+                  placeholder={t.home.heroPlaceholder}
                   className="w-full py-4 bg-transparent text-lg outline-none font-medium text-white placeholder-gray-500"
                   disabled={loading}
+                  autoCapitalize="none"
+                  autoComplete="url"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  aria-invalid={Boolean(error)}
                 />
               </div>
               <button
@@ -278,6 +296,12 @@ export default function Home() {
               <p className="mt-4 text-red-400 font-bold flex items-center justify-center gap-1">
                 <AlertCircle className="w-4 h-4" />
                 {error}
+              </p>
+            )}
+            {!error && url && normalizedPreview.url && normalizedPreview.url !== url && (
+              <p className="mt-4 text-sm font-medium text-gray-400">
+                We will audit:{" "}
+                <span className="text-teal-300">{normalizedPreview.url}</span>
               </p>
             )}
           </div>
@@ -300,6 +324,12 @@ export default function Home() {
           <p className="mt-6 text-sm text-gray-500">
             Results in less than 60 seconds
           </p>
+          <Link
+            href="/content/why-no-sales"
+            className="mt-6 inline-flex items-center justify-center rounded-full border border-teal-400/30 bg-teal-400/10 px-5 py-2 text-sm font-bold text-teal-200 transition-all hover:border-teal-300 hover:bg-teal-400/15"
+          >
+            Learn why most websites fail
+          </Link>
         </div>
       </section>
 
@@ -429,7 +459,7 @@ export default function Home() {
               <h3 className="text-xl font-black mb-4">Custom</h3>
               <p className="text-gray-400 text-sm mb-8 leading-relaxed">Full implemention & high-performance website build.</p>
               <div className="text-4xl font-black mb-8">Quote</div>
-              <Link href="/services" className="block w-full bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold text-center transition-all">
+              <Link href="/contact" className="block w-full bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold text-center transition-all">
                 Contact Us
               </Link>
             </div>
@@ -478,12 +508,12 @@ export default function Home() {
               starting from scratch or optimizing your current stack.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <button className="bg-white text-black px-10 py-5 rounded-xl font-black text-lg hover:bg-gray-100 transition-all">
+              <Link href="/contact" className="bg-white text-black px-10 py-5 rounded-xl font-black text-lg hover:bg-gray-100 transition-all">
                 Custom Website Build
-              </button>
-              <button className="bg-white/20 hover:bg-white/30 text-white px-10 py-5 rounded-xl font-black text-lg backdrop-blur-md transition-all">
+              </Link>
+              <Link href="/contact" className="bg-white/20 hover:bg-white/30 text-white px-10 py-5 rounded-xl font-black text-lg backdrop-blur-md transition-all">
                 Consult With Expert
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -551,7 +581,7 @@ export default function Home() {
                 </li>
                 <li>
                   <Link
-                    href="#services"
+                    href="/contact"
                     className="hover:text-white transition-colors"
                   >
                     Contact
