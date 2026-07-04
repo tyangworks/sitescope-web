@@ -22,14 +22,41 @@ export interface Translations {
   };
   home: {
     heroTitle: string;
+    heroAccent: string;
     heroSubtitle: string;
     heroPlaceholder: string;
     heroButton: string;
+    loadingMessages: string[];
+    auditPreview: string;
+    resultsTime: string;
+    learnWhy: string;
     recentAudits: string;
     painPointsTitle: string;
     painPointsSubtitle: string;
+    painPointSpeed: string;
+    painPointSeo: string;
+    painPointContent: string;
+    painPointCta: string;
     pricingTitle: string;
+    pricingFreeTitle: string;
+    pricingFreeDesc: string;
+    pricingFreeButton: string;
+    pricingPopular: string;
+    pricingProTitle: string;
+    pricingProDesc: string;
+    pricingOneTime: string;
+    pricingRunAudit: string;
+    pricingCustomTitle: string;
+    pricingCustomDesc: string;
+    pricingCustomPrice: string;
+    pricingContact: string;
     howItWorks: string;
+    howStepUrlTitle: string;
+    howStepUrlDesc: string;
+    howStepAiTitle: string;
+    howStepAiDesc: string;
+    howStepFixTitle: string;
+    howStepFixDesc: string;
     servicesTitle: string;
     servicesSubtitle: string;
     customBuild: string;
@@ -117,15 +144,47 @@ export const translations: Record<Language, Translations> = {
     },
     home: {
       heroTitle: "See What's Holding Your",
+      heroAccent: "Growth Back",
       heroSubtitle:
         "AI-powered website audits that show you exactly what to fix — and how to grow faster. No sign-up required.",
       heroPlaceholder: "Enter your website, e.g. example.com",
       heroButton: "Get Free Audit",
+      loadingMessages: [
+        "Initializing cloud browser...",
+        "Capturing high-res visual snapshot...",
+        "Analyzing SEO and structure...",
+        "Generating growth insights...",
+      ],
+      auditPreview: "We will audit:",
+      resultsTime: "Results in less than 60 seconds",
+      learnWhy: "Learn why most websites fail",
       recentAudits: "Recently Analyzed Sites",
       painPointsTitle: "Most websites don't fail because of traffic.",
       painPointsSubtitle: "They fail because of hidden conversion killers.",
+      painPointSpeed: "Slow performance that kills 50%+ of mobile conversions.",
+      painPointSeo: "SEO gaps blocking your business from organic growth.",
+      painPointContent: "Generic content that fails to engage and convert visitors.",
+      painPointCta: "Weak Call-to-Action and confusing user journeys.",
       pricingTitle: "Simple Pricing",
+      pricingFreeTitle: "Free",
+      pricingFreeDesc: "Basic audit & core insights for quick checkups.",
+      pricingFreeButton: "Try Free",
+      pricingPopular: "Most Popular",
+      pricingProTitle: "Pro",
+      pricingProDesc: "Full audit report + step-by-step fix plan & code snippets.",
+      pricingOneTime: "one-time unlock",
+      pricingRunAudit: "Run Audit First",
+      pricingCustomTitle: "Custom",
+      pricingCustomDesc: "Full implementation & high-performance website build.",
+      pricingCustomPrice: "Quote",
+      pricingContact: "Contact Us",
       howItWorks: "How It Works",
+      howStepUrlTitle: "Enter URL",
+      howStepUrlDesc: "Input your website and start the analysis instantly.",
+      howStepAiTitle: "AI Analysis",
+      howStepAiDesc: "We scan SEO, performance, and structure issues.",
+      howStepFixTitle: "Get Fix Plan",
+      howStepFixDesc: "Receive actionable insights to improve growth.",
       servicesTitle: "Too busy to fix it yourself?",
       servicesSubtitle:
         "Our expert team builds high-performance, high-converting websites starting from scratch or optimizing your current stack.",
@@ -216,15 +275,47 @@ export const translations: Record<Language, Translations> = {
     },
     home: {
       heroTitle: "发现阻碍你",
+      heroAccent: "增长的问题",
       heroSubtitle:
         "AI驱动的网站审计，准确告诉你需要修复什么——以及如何更快增长。无需注册。",
       heroPlaceholder: "输入网站，例如 example.com",
       heroButton: "获取免费审计",
+      loadingMessages: [
+        "正在启动云端浏览器...",
+        "正在生成高清网站截图...",
+        "正在分析 SEO 和页面结构...",
+        "正在生成增长建议...",
+      ],
+      auditPreview: "我们将审计：",
+      resultsTime: "通常 60 秒内生成结果",
+      learnWhy: "了解为什么大多数网站无法转化",
       recentAudits: "最近分析的网站",
       painPointsTitle: "大多数网站失败不是因为流量。",
       painPointsSubtitle: "它们失败是因为隐藏的转化杀手。",
+      painPointSpeed: "加载速度慢，直接损失大量移动端转化。",
+      painPointSeo: "SEO 缺口阻碍业务获得自然增长。",
+      painPointContent: "内容过于普通，无法吸引访客并推动转化。",
+      painPointCta: "行动按钮薄弱，用户路径混乱。",
       pricingTitle: "简单定价",
+      pricingFreeTitle: "免费",
+      pricingFreeDesc: "快速检查网站，获得基础审计和核心洞察。",
+      pricingFreeButton: "免费试用",
+      pricingPopular: "最受欢迎",
+      pricingProTitle: "Pro",
+      pricingProDesc: "完整审计报告、分步骤修复计划和代码片段。",
+      pricingOneTime: "一次性解锁",
+      pricingRunAudit: "先生成审计",
+      pricingCustomTitle: "定制",
+      pricingCustomDesc: "完整实施和高性能网站建设服务。",
+      pricingCustomPrice: "报价",
+      pricingContact: "联系我们",
       howItWorks: "工作原理",
+      howStepUrlTitle: "输入网址",
+      howStepUrlDesc: "输入网站地址，立即开始分析。",
+      howStepAiTitle: "AI 分析",
+      howStepAiDesc: "我们会扫描 SEO、性能和页面结构问题。",
+      howStepFixTitle: "获取修复计划",
+      howStepFixDesc: "获得可执行的增长优化建议。",
       servicesTitle: "太忙没时间自己修复？",
       servicesSubtitle:
         "我们的专家团队从零开始构建高性能、高转化的网站，或优化你现有的技术栈。",

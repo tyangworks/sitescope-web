@@ -37,12 +37,7 @@ export default function Home() {
   const { t, language, setLanguage } = useTranslation(); // 添加翻译 hook
   const normalizedPreview = normalizeUrlInput(url);
 
-  const loadingMessages = [
-    "🚀 Initializing cloud browser...",
-    "📸 Capturing high-res visual snapshot...",
-    "🧠 Analyzing SEO and structure...",
-    "📊 Generating growth insights...",
-  ];
+  const loadingMessages = t.home.loadingMessages;
 
   // Fetch recent reports for social proof
   useEffect(() => {
@@ -68,7 +63,7 @@ export default function Home() {
       }, 3000);
     }
     return () => clearInterval(interval);
-  }, [loading]);
+  }, [loading, loadingMessages.length]);
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -239,12 +234,12 @@ export default function Home() {
         </div>
       )}
       {/* 2. HERO SECTION */}
-      <section className="relative pt-20 pb-24 overflow-hidden">
+      <section id="audit" className="relative pt-20 pb-24 overflow-hidden scroll-mt-24">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <h1 className="text-5xl md:text-7xl font-black text-white mb-8 leading-[1.1] tracking-tight">
             {t.home.heroTitle} <br />
             <span className="bg-gradient-to-r from-blue-400 to-teal-300 bg-clip-text text-transparent">
-              Growth Back
+              {t.home.heroAccent}
             </span>
           </h1>
           <p className="max-w-2xl mx-auto text-xl text-gray-300 mb-12 font-medium leading-relaxed">
@@ -288,7 +283,7 @@ export default function Home() {
                 {loading ? (
                   <Loader2 className="animate-spin w-6 h-6" />
                 ) : (
-                  "Get Free Audit"
+                  t.home.heroButton
                 )}
               </button>
             </form>
@@ -300,7 +295,7 @@ export default function Home() {
             )}
             {!error && url && normalizedPreview.url && normalizedPreview.url !== url && (
               <p className="mt-4 text-sm font-medium text-gray-400">
-                We will audit:{" "}
+                {t.home.auditPreview}{" "}
                 <span className="text-teal-300">{normalizedPreview.url}</span>
               </p>
             )}
@@ -322,13 +317,13 @@ export default function Home() {
           )}
 
           <p className="mt-6 text-sm text-gray-500">
-            Results in less than 60 seconds
+            {t.home.resultsTime}
           </p>
           <Link
             href="/content/why-no-sales"
             className="mt-6 inline-flex items-center justify-center rounded-full border border-teal-400/30 bg-teal-400/10 px-5 py-2 text-sm font-bold text-teal-200 transition-all hover:border-teal-300 hover:bg-teal-400/15"
           >
-            Learn why most websites fail
+            {t.home.learnWhy}
           </Link>
         </div>
       </section>
@@ -338,7 +333,7 @@ export default function Home() {
         <section className="bg-[#111827]/50 py-20 border-y border-gray-800">
           <div className="max-w-7xl mx-auto px-6">
             <h2 className="text-sm font-black text-gray-500 uppercase tracking-widest text-center mb-12">
-              Recently Analyzed Sites
+              {t.home.recentAudits}
             </h2>
             <div className="grid md:grid-cols-3 gap-8">
               {recentReports.map((report) => (
@@ -359,7 +354,7 @@ export default function Home() {
                       {report.url}
                     </span>
                     <span className="text-xs font-black bg-blue-500/20 text-blue-300 px-2 py-1 rounded">
-                      Score: {report.score}
+                      {t.reports.score}: {report.score}
                     </span>
                   </div>
                 </Link>
@@ -384,7 +379,7 @@ export default function Home() {
                 !
               </div>
               <p className="font-bold text-gray-300">
-                Slow performance that kills 50%+ of mobile conversions.
+                {t.home.painPointSpeed}
               </p>
             </div>
             <div className="p-8 bg-[#111827] rounded-2xl border border-gray-800 flex gap-4">
@@ -392,7 +387,7 @@ export default function Home() {
                 !
               </div>
               <p className="font-bold text-gray-300">
-                SEO gaps blocking your business from organic growth.
+                {t.home.painPointSeo}
               </p>
             </div>
             <div className="p-8 bg-[#111827] rounded-2xl border border-gray-800 flex gap-4">
@@ -400,7 +395,7 @@ export default function Home() {
                 !
               </div>
               <p className="font-bold text-gray-300">
-                Generic content that fails to engage and convert visitors.
+                {t.home.painPointContent}
               </p>
             </div>
             <div className="p-8 bg-[#111827] rounded-2xl border border-gray-800 flex gap-4">
@@ -408,7 +403,7 @@ export default function Home() {
                 !
               </div>
               <p className="font-bold text-gray-300">
-                Weak Call-to-Action and confusing user journeys.
+                {t.home.painPointCta}
               </p>
             </div>
           </div>
@@ -422,27 +417,27 @@ export default function Home() {
       >
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-4xl font-black mb-12 text-white">
-            Simple Pricing
+            {t.home.pricingTitle}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-[#111827] p-10 rounded-2xl border border-gray-800">
-              <h3 className="text-xl font-black mb-4 text-white">Free</h3>
+              <h3 className="text-xl font-black mb-4 text-white">{t.home.pricingFreeTitle}</h3>
               <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-                Basic audit & core insights for quick checkups.
+                {t.home.pricingFreeDesc}
               </p>
               <div className="text-4xl font-black mb-8 text-white">$0</div>
-              <button className="w-full border-2 border-gray-700 py-3 rounded-xl font-bold hover:bg-gray-800 transition-all text-gray-300">
-                Try Free
-              </button>
+              <Link href="#audit" className="block w-full border-2 border-gray-700 py-3 rounded-xl font-bold hover:bg-gray-800 transition-all text-gray-300">
+                {t.home.pricingFreeButton}
+              </Link>
             </div>
 
             <div className="bg-[#111827] p-10 rounded-2xl border-2 border-blue-500 relative scale-105 shadow-xl shadow-blue-500/20">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-500 to-teal-400 text-white px-4 py-1 rounded-full text-xs font-black uppercase">
-                Most Popular
+                {t.home.pricingPopular}
               </div>
-              <h3 className="text-xl font-black mb-4 text-white">Pro</h3>
+              <h3 className="text-xl font-black mb-4 text-white">{t.home.pricingProTitle}</h3>
               <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-                Full audit report + step-by-step fix plan & code snippets.
+                {t.home.pricingProDesc}
               </p>
               <div className="mb-8 text-white">
                 <div className="flex items-end justify-center gap-3">
@@ -452,23 +447,23 @@ export default function Home() {
                   </span>
                 </div>
                 <div className="mt-1 text-sm font-normal text-gray-400">
-                  one-time unlock
+                  {t.home.pricingOneTime}
                 </div>
               </div>
               <Link
-                href="/"
+                href="#audit"
                 className="block w-full rounded-xl bg-gradient-to-r from-blue-500 to-teal-400 py-3 text-center font-bold text-white transition-all hover:opacity-90"
               >
-                Run Audit First
+                {t.home.pricingRunAudit}
               </Link>
             </div>
 
             <div className="bg-[#0B0F1A] p-10 rounded-2xl border border-gray-700 text-white">
-              <h3 className="text-xl font-black mb-4">Custom</h3>
-              <p className="text-gray-400 text-sm mb-8 leading-relaxed">Full implemention & high-performance website build.</p>
-              <div className="text-4xl font-black mb-8">Quote</div>
+              <h3 className="text-xl font-black mb-4">{t.home.pricingCustomTitle}</h3>
+              <p className="text-gray-400 text-sm mb-8 leading-relaxed">{t.home.pricingCustomDesc}</p>
+              <div className="text-4xl font-black mb-8">{t.home.pricingCustomPrice}</div>
               <Link href="/contact" className="block w-full bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold text-center transition-all">
-                Contact Us
+                {t.home.pricingContact}
               </Link>
             </div>
           </div>
@@ -482,16 +477,16 @@ export default function Home() {
       >
         {[
           {
-            title: "Enter URL",
-            desc: "Input your website and start the analysis instantly.",
+            title: t.home.howStepUrlTitle,
+            desc: t.home.howStepUrlDesc,
           },
           {
-            title: "AI Analysis",
-            desc: "We scan SEO, performance, and structure issues.",
+            title: t.home.howStepAiTitle,
+            desc: t.home.howStepAiDesc,
           },
           {
-            title: "Get Fix Plan",
-            desc: "Receive actionable insights to improve growth.",
+            title: t.home.howStepFixTitle,
+            desc: t.home.howStepFixDesc,
           },
         ].map((item, i) => (
           <div
@@ -509,18 +504,17 @@ export default function Home() {
         <div className="bg-gradient-to-r from-blue-600 to-teal-500 rounded-3xl p-12 md:p-24 text-white text-center relative overflow-hidden">
           <div className="relative z-10">
             <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
-              Too busy to fix it yourself?
+              {t.home.servicesTitle}
             </h2>
             <p className="text-white/80 text-xl max-w-2xl mx-auto mb-12">
-              Our expert team builds high-performance, high-converting websites
-              starting from scratch or optimizing your current stack.
+              {t.home.servicesSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Link href="/contact" className="bg-white text-black px-10 py-5 rounded-xl font-black text-lg hover:bg-gray-100 transition-all">
-                Custom Website Build
+                {t.home.customBuild}
               </Link>
               <Link href="/contact" className="bg-white/20 hover:bg-white/30 text-white px-10 py-5 rounded-xl font-black text-lg backdrop-blur-md transition-all">
-                Consult With Expert
+                {t.home.consultExpert}
               </Link>
             </div>
           </div>
