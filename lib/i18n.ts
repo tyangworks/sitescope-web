@@ -153,10 +153,10 @@ export const translations: Record<Language, Translations> = {
       fixPlansSubtitle: "Detailed fix steps and code snippets",
       contentSuggestions: "Content Suggestions",
       contentSuggestionsSubtitle: "Suggestions to improve user experience",
-      supportUs: "Support Us",
+      supportUs: "Support SiteScope",
       supportUsSubtitle:
-        "If this report was helpful, please consider donating via PayPal to support our development. This is optional and won't unlock any additional content.",
-      donate: "Donate via PayPal",
+        "If this report helped you, a small PayPal donation helps us keep improving the free audit experience. Donations are optional and do not unlock extra content.",
+      donate: "Donate with PayPal",
       unlockFull: "Unlock Full Report",
       unlockFullDesc:
         "Enter your email address to unlock all SEO issues in detail for free.",
@@ -169,7 +169,7 @@ export const translations: Record<Language, Translations> = {
       codeSnippet: "Code Snippet",
       enterEmail: "your@email.com",
       freeUnlock: "Free Unlock Full Report",
-      upgradeToPro: "Upgrade to Pro - $19 CAD",
+      upgradeToPro: "Unlock Pro Audit - $9",
       processing: "Processing...",
     },
     auth: {
@@ -252,10 +252,10 @@ export const translations: Record<Language, Translations> = {
       fixPlansSubtitle: "详细的修复步骤和代码片段",
       contentSuggestions: "内容建议",
       contentSuggestionsSubtitle: "提升用户体验的建议",
-      supportUs: "支持我们",
+      supportUs: "支持 SiteScope",
       supportUsSubtitle:
-        "如果这个报告对您有帮助，请考虑通过PayPal捐赠来支持我们的开发工作。这是可选的，不会解锁任何额外内容。",
-      donate: "通过PayPal捐赠",
+        "如果这份报告对您有帮助，欢迎通过 PayPal 小额支持我们继续优化免费审计体验。捐赠完全自愿，不会解锁额外内容。",
+      donate: "通过 PayPal 捐赠",
       unlockFull: "解锁完整报告",
       unlockFullDesc: "输入您的邮箱地址即可免费解锁所有SEO问题的详细分析。",
       upgradePro: "升级到Pro",
@@ -266,7 +266,7 @@ export const translations: Record<Language, Translations> = {
       codeSnippet: "代码片段",
       enterEmail: "your@email.com",
       freeUnlock: "免费解锁完整报告",
-      upgradeToPro: "升级到Pro - $19 CAD",
+      upgradeToPro: "解锁 Pro 审计 - $9",
       processing: "处理中...",
     },
     auth: {

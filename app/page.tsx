@@ -444,15 +444,23 @@ export default function Home() {
               <p className="text-gray-400 text-sm mb-8 leading-relaxed">
                 Full audit report + step-by-step fix plan & code snippets.
               </p>
-              <div className="text-4xl font-black mb-8 text-white">
-                $19{" "}
-                <span className="text-sm text-gray-400 font-normal">
-                  / audit
-                </span>
+              <div className="mb-8 text-white">
+                <div className="flex items-end justify-center gap-3">
+                  <span className="text-4xl font-black">$9</span>
+                  <span className="pb-1 text-sm font-bold text-gray-500 line-through">
+                    $29
+                  </span>
+                </div>
+                <div className="mt-1 text-sm font-normal text-gray-400">
+                  one-time unlock
+                </div>
               </div>
-              <button className="w-full bg-gradient-to-r from-blue-500 to-teal-400 text-white py-3 rounded-xl font-bold hover:opacity-90 transition-all">
-                Coming Soon
-              </button>
+              <Link
+                href="/"
+                className="block w-full rounded-xl bg-gradient-to-r from-blue-500 to-teal-400 py-3 text-center font-bold text-white transition-all hover:opacity-90"
+              >
+                Run Audit First
+              </Link>
             </div>
 
             <div className="bg-[#0B0F1A] p-10 rounded-2xl border border-gray-700 text-white">

@@ -2,15 +2,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   AlertCircle,
   Lightbulb,
   ArrowLeft,
+  ExternalLink,
   Share2,
   Globe,
   Lock,
   Coffee,
+  Heart,
   Trash2,
   CheckCircle2,
   Loader2,
@@ -20,11 +22,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useTranslation } from "@/lib/i18n";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
+
+const paypalDonateUrl =
+  "https://www.paypal.com/donate/?hosted_button_id=DMPQU9NWDQDYE";
 
 // Type definitions
 type ReportIssue = {
@@ -65,7 +71,7 @@ function errorMessage(error: unknown, fallback: string) {
 
 export default function ReportDetail() {
   const params = useParams();
-  const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [report, setReport] = useState<ReportRecord | null>(null);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
@@ -77,7 +83,6 @@ export default function ReportDetail() {
   const [loadingStep, setLoadingStep] = useState(0);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi";
-  const paypalUrl = process.env.NEXT_PUBLIC_PAYPAL_ME_URL;
   const reportId = String(params.id || "");
   const isLocked = report ? !report.is_paid : false;
 
@@ -140,55 +145,6 @@ export default function ReportDetail() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    if (!searchParams || !reportId || !apiUrl) return;
-    const success = searchParams.get("success");
-    const canceled = searchParams.get("canceled");
-    if (canceled === "true") {
-      toast.message("Checkout was canceled.");
-    }
-
-    if (success !== "true") return;
-
-    let tries = 0;
-    const maxTries = 90;
-    const poll = async () => {
-      try {
-        const response = await fetch(
-          `${apiUrl}/api/report-payment-status?id=${encodeURIComponent(reportId)}`,
-        );
-        const result = await parseJsonSafe(response);
-        if (!response.ok) throw new Error(result.error || "Polling failed");
-
-        if (result.isPaid) {
-          await fetchReport();
-          toast.success("Payment confirmed. Report unlocked.");
-          return true;
-        }
-      } catch (error: unknown) {
-        if (tries === 0) {
-          toast.error(errorMessage(error, "Could not verify payment yet."));
-        }
-      }
-      return false;
-    };
-
-    const timer = setInterval(async () => {
-      tries += 1;
-      const done = await poll();
-      if (done || tries >= maxTries) {
-        clearInterval(timer);
-        if (!done) {
-          toast.message(
-            "Still processing payment. Please refresh in a moment.",
-          );
-        }
-      }
-    }, 2000);
-
-    return () => clearInterval(timer);
-  }, [searchParams, reportId, apiUrl, fetchReport]);
-
   async function handleEmailUnlock() {
     if (!email) {
       toast.error("Please enter your email address.");
@@ -221,10 +177,6 @@ export default function ReportDetail() {
   }
 
   async function handleProUnlock() {
-    if (!apiUrl) {
-      toast.error("NEXT_PUBLIC_API_URL is not configured.");
-      return;
-    }
     if (!reportId) {
       toast.error("Invalid report id.");
       return;
@@ -237,7 +189,7 @@ export default function ReportDetail() {
 
     try {
       setUnlocking(true);
-      const response = await fetch(`${apiUrl}/api/create-checkout-session`, {
+      const response = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -248,6 +200,10 @@ export default function ReportDetail() {
       const result = await parseJsonSafe(response);
       if (!response.ok) {
         throw new Error(result.error || "Failed to start checkout.");
+      }
+      if (result.alreadyPaid) {
+        window.location.href = result.url || `/report/${reportId}`;
+        return;
       }
       if (!result.url) throw new Error("Stripe checkout URL missing.");
       window.location.href = result.url;
@@ -687,23 +643,33 @@ export default function ReportDetail() {
               <div className="max-w-md w-full bg-[#111827] rounded-2xl border border-[#1F2937] p-8 shadow-2xl">
                 <div className="flex items-center gap-3 mb-4">
                   <Lock className="w-6 h-6 text-[#00C2A8]" />
-                  <h3 className="text-xl font-bold text-white">升级到 Pro</h3>
+                  <h3 className="text-xl font-bold text-white">
+                    Unlock Pro Audit
+                  </h3>
                 </div>
-                <p className="text-sm text-[#9CA3AF] mb-6 leading-relaxed">
-                  解锁详细的修复计划和代码片段，获得完整的解决方案。
+                <p className="text-sm text-[#9CA3AF] mb-5 leading-relaxed">
+                  Unlock the full audit report, prioritized fix plan, and
+                  implementation-ready insights.
                 </p>
+                <div className="mb-5 flex items-end gap-3">
+                  <div className="text-4xl font-black text-white">$9</div>
+                  <div className="pb-1 text-sm font-bold text-[#6B7280]">
+                    <span className="line-through">$29</span>
+                    <span className="ml-2 text-[#00C2A8]">one-time</span>
+                  </div>
+                </div>
                 <div className="bg-[#0B0F1A] rounded-xl p-4 mb-6 border border-[#1F2937]">
                   <div className="flex items-center gap-2 mb-2">
                     <CheckCircle2 className="w-4 h-4 text-[#00C2A8]" />
-                    <span className="text-sm text-white">详细的修复步骤</span>
+                    <span className="text-sm text-white">Detailed fix steps</span>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
                     <CheckCircle2 className="w-4 h-4 text-[#00C2A8]" />
-                    <span className="text-sm text-white">即用型代码片段</span>
+                    <span className="text-sm text-white">Ready-to-use code snippets</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-[#00C2A8]" />
-                    <span className="text-sm text-white">优先级排序</span>
+                    <span className="text-sm text-white">Priority-ranked action plan</span>
                   </div>
                 </div>
                 <input
@@ -726,7 +692,7 @@ export default function ReportDetail() {
                   ) : (
                     <>
                       <Zap className="w-5 h-5" />
-                      升级到 Pro - $19 CAD
+                      Unlock Pro Audit
                     </>
                   )}
                 </button>
@@ -829,27 +795,31 @@ export default function ReportDetail() {
           )}
 
         {/* Donation Section */}
-        <div className="bg-[#111827] rounded-2xl border border-[#1F2937] p-8 shadow-xl">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[#00C2A8]/20 flex items-center justify-center flex-shrink-0">
-              <Coffee className="w-6 h-6 text-[#00C2A8]" />
+        <div className="overflow-hidden rounded-2xl border border-blue-400/20 bg-gradient-to-br from-[#111827] to-[#0B0F1A] shadow-xl">
+          <div className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:p-8">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-blue-500/15">
+                <Heart className="h-6 w-6 text-blue-300" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-white">
+                  {t.report.supportUs}
+                </h3>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#9CA3AF]">
+                  {t.report.supportUsSubtitle}
+                </p>
+              </div>
             </div>
-            <div className="flex-1">
-              <h3 className="text-xl font-bold text-white mb-2">支持我们</h3>
-              <p className="text-sm text-[#9CA3AF] mb-4 leading-relaxed">
-                如果这个报告对您有帮助，请考虑通过 PayPal
-                捐赠来支持我们的开发工作。 这是可选的，不会解锁任何额外内容。
-              </p>
-              <a
-                href={paypalUrl || "#"}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 bg-[#0B0F1A] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#1F2937] transition-all border border-[#1F2937] hover:border-[#3A8DFF]"
-              >
-                <Coffee className="w-5 h-5" />
-                通过 PayPal 捐赠
-              </a>
-            </div>
+            <a
+              href={paypalDonateUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ffc439] px-6 py-3 text-sm font-black text-[#003087] transition-all hover:scale-[1.01] hover:opacity-95"
+            >
+              <Coffee className="h-5 w-5" />
+              {t.report.donate}
+              <ExternalLink className="h-4 w-4" />
+            </a>
           </div>
         </div>
       </div>
