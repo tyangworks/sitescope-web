@@ -451,10 +451,10 @@ export default function Home() {
                 </div>
               </div>
               <Link
-                href="#audit"
+                href="/pro-audit"
                 className="block w-full rounded-xl bg-gradient-to-r from-blue-500 to-teal-400 py-3 text-center font-bold text-white transition-all hover:opacity-90"
               >
-                {t.home.pricingRunAudit}
+                {t.home.pricingBuyPro}
               </Link>
             </div>
 

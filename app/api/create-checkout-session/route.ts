@@ -14,10 +14,12 @@ async function createStripeCheckoutSession({
   origin,
   reportId,
   customerEmail,
+  purchaseType,
 }: {
   origin: string;
   reportId: string;
   customerEmail: string;
+  purchaseType: "report_unlock" | "pro_credit";
 }) {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
   const stripePriceId = process.env.STRIPE_PRICE_ID;
@@ -35,16 +37,22 @@ async function createStripeCheckoutSession({
   const params = new URLSearchParams();
   params.set("mode", "payment");
   params.set("customer_email", customerEmail);
-  params.set("client_reference_id", reportId);
+  if (reportId) params.set("client_reference_id", reportId);
   params.set("line_items[0][price]", stripePriceId);
   params.set("line_items[0][quantity]", "1");
-  params.set("metadata[report_id]", reportId);
+  params.set("metadata[purchase_type]", purchaseType);
+  if (reportId) params.set("metadata[report_id]", reportId);
   params.set("metadata[product]", "SiteScope Pro Audit");
   params.set(
     "success_url",
     `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
   );
-  params.set("cancel_url", `${origin}/cancel?report_id=${encodeURIComponent(reportId)}`);
+  params.set(
+    "cancel_url",
+    reportId
+      ? `${origin}/cancel?report_id=${encodeURIComponent(reportId)}`
+      : `${origin}/cancel`,
+  );
 
   const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
@@ -68,9 +76,16 @@ export async function POST(request: Request) {
     const body = await request.json();
     const reportId = cleanText(body.reportId, 100);
     const customerEmail = cleanText(body.customerEmail, 320).toLowerCase();
+    const purchaseType =
+      cleanText(body.purchaseType, 50) === "pro_credit"
+        ? "pro_credit"
+        : "report_unlock";
 
-    if (!reportId) {
-      return NextResponse.json({ error: "reportId is required." }, { status: 400 });
+    if (purchaseType === "report_unlock" && !reportId) {
+      return NextResponse.json(
+        { error: "reportId is required." },
+        { status: 400 },
+      );
     }
 
     if (!isValidEmail(customerEmail)) {
@@ -93,27 +108,29 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    const { data: report, error: reportError } = await supabase
-      .from("reports")
-      .select("id, is_paid")
-      .eq("id", reportId)
-      .maybeSingle();
+    if (purchaseType === "report_unlock") {
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      const { data: report, error: reportError } = await supabase
+        .from("reports")
+        .select("id, is_paid")
+        .eq("id", reportId)
+        .maybeSingle();
 
-    if (reportError) {
-      return NextResponse.json({ error: reportError.message }, { status: 500 });
-    }
+      if (reportError) {
+        return NextResponse.json({ error: reportError.message }, { status: 500 });
+      }
 
-    if (!report) {
-      return NextResponse.json({ error: "Report not found." }, { status: 404 });
-    }
+      if (!report) {
+        return NextResponse.json({ error: "Report not found." }, { status: 404 });
+      }
 
-    if (report.is_paid) {
-      return NextResponse.json({
-        success: true,
-        alreadyPaid: true,
-        url: `/report/${encodeURIComponent(reportId)}`,
-      });
+      if (report.is_paid) {
+        return NextResponse.json({
+          success: true,
+          alreadyPaid: true,
+          url: `/report/${encodeURIComponent(reportId)}`,
+        });
+      }
     }
 
     const origin = new URL(request.url).origin;
@@ -121,6 +138,7 @@ export async function POST(request: Request) {
       origin,
       reportId,
       customerEmail,
+      purchaseType,
     });
 
     if (!stripeResult.ok) {

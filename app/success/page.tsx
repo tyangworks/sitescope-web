@@ -15,7 +15,11 @@ type StripeSession = {
   currency: string | null;
   customer_email?: string | null;
   customer_details?: { email?: string | null } | null;
-  metadata?: { report_id?: string; product?: string } | null;
+  metadata?: {
+    report_id?: string;
+    product?: string;
+    purchase_type?: "report_unlock" | "pro_credit";
+  } | null;
 };
 
 async function retrieveStripeSession(sessionId: string) {
@@ -43,12 +47,8 @@ async function retrieveStripeSession(sessionId: string) {
   return data as StripeSession;
 }
 
-async function unlockReport(session: StripeSession) {
+async function finalizePayment(session: StripeSession) {
   const reportId = session.metadata?.report_id;
-  if (!reportId) {
-    throw new Error("Payment is missing report metadata.");
-  }
-
   if (session.payment_status !== "paid") {
     throw new Error("Payment has not been completed yet.");
   }
@@ -62,12 +62,14 @@ async function unlockReport(session: StripeSession) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const { error: updateError } = await supabase
-    .from("reports")
-    .update({ is_paid: true })
-    .eq("id", reportId);
+  if (reportId) {
+    const { error: updateError } = await supabase
+      .from("reports")
+      .update({ is_paid: true })
+      .eq("id", reportId);
 
-  if (updateError) throw new Error(updateError.message);
+    if (updateError) throw new Error(updateError.message);
+  }
 
   const { error: paymentError } = await supabase.from("payment_events").upsert(
     [
@@ -88,12 +90,45 @@ async function unlockReport(session: StripeSession) {
 
   if (paymentError) throw new Error(paymentError.message);
 
-  return reportId;
+  if (!reportId) {
+    const email =
+      session.customer_details?.email || session.customer_email || "";
+
+    if (!email) {
+      throw new Error("Payment was successful, but Stripe did not return an email.");
+    }
+
+    const { error: creditError } = await supabase
+      .from("pro_audit_credits")
+      .upsert(
+        [
+          {
+            email: email.toLowerCase(),
+            stripe_session_id: session.id,
+            payment_status: session.payment_status,
+            amount_total: session.amount_total,
+            currency: session.currency,
+            status: "available",
+          },
+        ],
+        { onConflict: "stripe_session_id" },
+      );
+
+    if (creditError) throw new Error(creditError.message);
+  }
+
+  return {
+    reportId: reportId || "",
+    isCreditPurchase: !reportId,
+    email: session.customer_details?.email || session.customer_email || "",
+  };
 }
 
 export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   const { session_id: sessionId } = await searchParams;
   let reportId = "";
+  let customerEmail = "";
+  let isCreditPurchase = false;
   let errorMessage = "";
 
   if (!sessionId) {
@@ -101,7 +136,10 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   } else {
     try {
       const session = await retrieveStripeSession(sessionId);
-      reportId = await unlockReport(session);
+      const result = await finalizePayment(session);
+      reportId = result.reportId;
+      customerEmail = result.email;
+      isCreditPurchase = result.isCreditPurchase;
     } catch (error) {
       errorMessage =
         error instanceof Error
@@ -145,17 +183,22 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                 Payment confirmed
               </p>
               <h1 className="mt-3 text-3xl font-black">
-                Your Pro Audit is unlocked
+                {isCreditPurchase
+                  ? "Your Pro Audit credit is ready"
+                  : "Your Pro Audit is unlocked"}
               </h1>
               <p className="mt-4 leading-relaxed text-gray-300">
-                The payment was verified with Stripe and your report is now
-                marked as unlocked in SiteScope.
+                {isCreditPurchase
+                  ? `We saved one Pro Audit credit for ${customerEmail}. Run an audit, then use this email to unlock the full Pro report.`
+                  : "The payment was verified with Stripe and your report is now marked as unlocked in SiteScope."}
               </p>
               <Link
-                href={`/report/${encodeURIComponent(reportId)}`}
+                href={
+                  isCreditPurchase ? "/" : `/report/${encodeURIComponent(reportId)}`
+                }
                 className="mt-8 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-teal-400 px-5 py-3 font-black text-white transition-opacity hover:opacity-90"
               >
-                View full report
+                {isCreditPurchase ? "Run your audit" : "View full report"}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </>

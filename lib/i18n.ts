@@ -45,7 +45,7 @@ export interface Translations {
     pricingProTitle: string;
     pricingProDesc: string;
     pricingOneTime: string;
-    pricingRunAudit: string;
+    pricingBuyPro: string;
     pricingCustomTitle: string;
     pricingCustomDesc: string;
     pricingCustomPrice: string;
@@ -173,7 +173,7 @@ export const translations: Record<Language, Translations> = {
       pricingProTitle: "Pro",
       pricingProDesc: "Full audit report + step-by-step fix plan & code snippets.",
       pricingOneTime: "one-time unlock",
-      pricingRunAudit: "Run Audit First",
+      pricingBuyPro: "Buy Pro Audit",
       pricingCustomTitle: "Custom",
       pricingCustomDesc: "Full implementation & high-performance website build.",
       pricingCustomPrice: "Quote",
@@ -304,7 +304,7 @@ export const translations: Record<Language, Translations> = {
       pricingProTitle: "Pro",
       pricingProDesc: "完整审计报告、分步骤修复计划和代码片段。",
       pricingOneTime: "一次性解锁",
-      pricingRunAudit: "先生成审计",
+      pricingBuyPro: "购买 Pro 审计",
       pricingCustomTitle: "定制",
       pricingCustomDesc: "完整实施和高性能网站建设服务。",
       pricingCustomPrice: "报价",

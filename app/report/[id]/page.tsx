@@ -189,12 +189,34 @@ export default function ReportDetail() {
 
     try {
       setUnlocking(true);
+      const redeemResponse = await fetch("/api/redeem-pro-credit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reportId,
+          email: email.trim(),
+        }),
+      });
+      const redeemResult = await parseJsonSafe(redeemResponse);
+
+      if (redeemResponse.ok && redeemResult.success) {
+        await fetchReport();
+        toast.success("Pro Audit credit applied. Report unlocked.");
+        setUnlocking(false);
+        return;
+      }
+
+      if (redeemResponse.status !== 404) {
+        throw new Error(redeemResult.error || "Failed to check Pro Audit credit.");
+      }
+
       const response = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           reportId,
           customerEmail: email.trim(),
+          purchaseType: "report_unlock",
         }),
       });
       const result = await parseJsonSafe(response);
