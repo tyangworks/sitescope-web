@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import {
+  getSupabaseServerConfig,
+  supabaseServiceRoleEnvMessage,
+} from "@/lib/serverEnv";
 
 function cleanText(value: unknown, maxLength = 2000) {
   if (typeof value !== "string") return "";
@@ -105,14 +109,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const { url: supabaseUrl, serviceRoleKey: supabaseKey } =
+      getSupabaseServerConfig();
 
     if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json(
         {
-          error:
-            "Contact storage is not configured. Please set SUPABASE_SERVICE_ROLE_KEY on the server.",
+          error: `Contact storage is not configured. ${supabaseServiceRoleEnvMessage}`,
         },
         { status: 500 },
       );

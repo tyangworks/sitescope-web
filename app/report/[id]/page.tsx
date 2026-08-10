@@ -106,7 +106,9 @@ export default function ReportDetail() {
   async function parseJsonSafe(response: Response) {
     const contentType = response.headers.get("content-type") || "";
     if (!contentType.includes("application/json")) {
-      throw new Error("Server communication error. Please try again.");
+      throw new Error(
+        `Server returned an unexpected response (${response.status}). Please try again.`,
+      );
     }
     return response.json();
   }
@@ -189,25 +191,29 @@ export default function ReportDetail() {
 
     try {
       setUnlocking(true);
-      const redeemResponse = await fetch("/api/redeem-pro-credit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reportId,
-          email: email.trim(),
-        }),
-      });
-      const redeemResult = await parseJsonSafe(redeemResponse);
+      try {
+        const redeemResponse = await fetch("/api/redeem-pro-credit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reportId,
+            email: email.trim(),
+          }),
+        });
+        const redeemResult = await parseJsonSafe(redeemResponse);
 
-      if (redeemResponse.ok && redeemResult.success) {
-        await fetchReport();
-        toast.success("Pro Audit credit applied. Report unlocked.");
-        setUnlocking(false);
-        return;
-      }
+        if (redeemResponse.ok && redeemResult.success) {
+          await fetchReport();
+          toast.success("Pro Audit credit applied. Report unlocked.");
+          setUnlocking(false);
+          return;
+        }
 
-      if (redeemResponse.status !== 404) {
-        throw new Error(redeemResult.error || "Failed to check Pro Audit credit.");
+        if (redeemResponse.status !== 404) {
+          toast("Could not check an existing Pro credit. Opening checkout instead.");
+        }
+      } catch {
+        toast("Could not check an existing Pro credit. Opening checkout instead.");
       }
 
       const response = await fetch("/api/create-checkout-session", {

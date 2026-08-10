@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { CheckCircle2, ArrowRight, AlertCircle, Globe } from "lucide-react";
+import {
+  getSupabaseServerConfig,
+  supabaseServiceRoleEnvMessage,
+} from "@/lib/serverEnv";
 
 export const dynamic = "force-dynamic";
 
@@ -53,11 +57,13 @@ async function finalizePayment(session: StripeSession) {
     throw new Error("Payment has not been completed yet.");
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const { url: supabaseUrl, serviceRoleKey: supabaseKey } =
+    getSupabaseServerConfig();
 
   if (!supabaseUrl || !supabaseKey) {
-    throw new Error("Payment storage is not configured.");
+    throw new Error(
+      `Payment storage is not configured. ${supabaseServiceRoleEnvMessage}`,
+    );
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
