@@ -1,10 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
 import { CheckCircle2, ArrowRight, AlertCircle, Globe } from "lucide-react";
-import {
-  getSupabaseServerConfig,
-  supabaseServiceRoleEnvMessage,
-} from "@/lib/serverEnv";
 
 export const dynamic = "force-dynamic";
 
@@ -12,136 +7,35 @@ type SuccessPageProps = {
   searchParams: Promise<{ session_id?: string }>;
 };
 
-type StripeSession = {
-  id: string;
-  payment_status: string;
-  amount_total: number | null;
-  currency: string | null;
-  customer_email?: string | null;
-  customer_details?: { email?: string | null } | null;
-  metadata?: {
-    report_id?: string;
-    product?: string;
-    purchase_type?: "report_unlock" | "pro_credit";
-  } | null;
+type FinalizePaymentResult = {
+  reportId: string;
+  isCreditPurchase: boolean;
+  email: string;
 };
 
-async function retrieveStripeSession(sessionId: string) {
-  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-  if (!stripeSecretKey) {
-    throw new Error("Stripe is not configured.");
-  }
-
+async function finalizePayment(sessionId: string): Promise<FinalizePaymentResult> {
+  const apiUrl = (
+    process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi"
+  ).replace(/\/+$/, "");
   const response = await fetch(
-    `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}`,
-    {
-      headers: {
-        Authorization: `Bearer ${stripeSecretKey}`,
-      },
-      cache: "no-store",
-    },
+    `${apiUrl}/api/finalize-checkout-session?session_id=${encodeURIComponent(
+      sessionId,
+    )}`,
+    { cache: "no-store" },
   );
-
-  const data = await response.json();
+  const contentType = response.headers.get("content-type") || "";
+  const data = contentType.includes("application/json")
+    ? await response.json()
+    : { error: await response.text() };
 
   if (!response.ok) {
-    throw new Error(data?.error?.message || "Could not verify payment.");
-  }
-
-  return data as StripeSession;
-}
-
-async function finalizePayment(session: StripeSession) {
-  const reportId = session.metadata?.report_id;
-  if (session.payment_status !== "paid") {
-    throw new Error("Payment has not been completed yet.");
-  }
-
-  const { url: supabaseUrl, serviceRoleKey: supabaseKey } =
-    getSupabaseServerConfig();
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error(
-      `Payment storage is not configured. ${supabaseServiceRoleEnvMessage}`,
-    );
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
-  if (reportId) {
-    const { error: updateError } = await supabase
-      .from("reports")
-      .update({ is_paid: true })
-      .eq("id", reportId);
-
-    if (updateError) throw new Error(updateError.message);
-  }
-
-  const { error: paymentError } = await supabase.from("payment_events").upsert(
-    [
-      {
-        report_id: reportId || null,
-        stripe_session_id: session.id,
-        stripe_event_id: `checkout_session:${session.id}`,
-        payment_status: session.payment_status,
-        amount_total: session.amount_total,
-        currency: session.currency,
-        customer_email:
-          session.customer_details?.email || session.customer_email || null,
-        raw_event: session,
-      },
-    ],
-    { onConflict: "stripe_event_id" },
-  );
-
-  if (paymentError) throw new Error(paymentError.message);
-
-  if (!reportId) {
-    const email =
-      session.customer_details?.email || session.customer_email || "";
-
-    if (!email) {
-      throw new Error("Payment was successful, but Stripe did not return an email.");
-    }
-
-    const { data: existingCredit, error: existingCreditError } = await supabase
-      .from("pro_audit_credits")
-      .select("id, status")
-      .eq("stripe_session_id", session.id)
-      .maybeSingle();
-
-    if (existingCreditError) throw new Error(existingCreditError.message);
-
-    if (existingCredit) {
-      return {
-        reportId: "",
-        isCreditPurchase: true,
-        email,
-      };
-    }
-
-    const { error: creditError } = await supabase
-      .from("pro_audit_credits")
-      .insert(
-        [
-          {
-            email: email.toLowerCase(),
-            stripe_session_id: session.id,
-            payment_status: session.payment_status,
-            amount_total: session.amount_total,
-            currency: session.currency,
-            status: "available",
-          },
-        ],
-      );
-
-    if (creditError) throw new Error(creditError.message);
+    throw new Error(data?.error || "Could not verify payment.");
   }
 
   return {
-    reportId: reportId || "",
-    isCreditPurchase: !reportId,
-    email: session.customer_details?.email || session.customer_email || "",
+    reportId: data.reportId || "",
+    isCreditPurchase: Boolean(data.isCreditPurchase),
+    email: data.email || "",
   };
 }
 
@@ -156,8 +50,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
     errorMessage = "Missing Stripe session. Please return to your report.";
   } else {
     try {
-      const session = await retrieveStripeSession(sessionId);
-      const result = await finalizePayment(session);
+      const result = await finalizePayment(sessionId);
       reportId = result.reportId;
       customerEmail = result.email;
       isCreditPurchase = result.isCreditPurchase;

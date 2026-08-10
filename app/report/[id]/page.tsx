@@ -82,7 +82,9 @@ export default function ReportDetail() {
   const [emailSubmitted, setEmailSubmitted] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi";
+  const apiUrl = (
+    process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi"
+  ).replace(/\/+$/, "");
   const reportId = String(params.id || "");
   const isLocked = report ? !report.is_paid : false;
 
@@ -192,7 +194,7 @@ export default function ReportDetail() {
     try {
       setUnlocking(true);
       try {
-        const redeemResponse = await fetch("/api/redeem-pro-credit", {
+        const redeemResponse = await fetch(`${apiUrl}/api/redeem-pro-credit`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -216,7 +218,7 @@ export default function ReportDetail() {
         toast("Could not check an existing Pro credit. Opening checkout instead.");
       }
 
-      const response = await fetch("/api/create-checkout-session", {
+      const response = await fetch(`${apiUrl}/api/create-checkout-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
