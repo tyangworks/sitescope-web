@@ -74,7 +74,7 @@ async function finalizePayment(session: StripeSession) {
   const { error: paymentError } = await supabase.from("payment_events").upsert(
     [
       {
-        report_id: reportId,
+        report_id: reportId || null,
         stripe_session_id: session.id,
         stripe_event_id: `checkout_session:${session.id}`,
         payment_status: session.payment_status,
@@ -98,9 +98,25 @@ async function finalizePayment(session: StripeSession) {
       throw new Error("Payment was successful, but Stripe did not return an email.");
     }
 
+    const { data: existingCredit, error: existingCreditError } = await supabase
+      .from("pro_audit_credits")
+      .select("id, status")
+      .eq("stripe_session_id", session.id)
+      .maybeSingle();
+
+    if (existingCreditError) throw new Error(existingCreditError.message);
+
+    if (existingCredit) {
+      return {
+        reportId: "",
+        isCreditPurchase: true,
+        email,
+      };
+    }
+
     const { error: creditError } = await supabase
       .from("pro_audit_credits")
-      .upsert(
+      .insert(
         [
           {
             email: email.toLowerCase(),
@@ -111,7 +127,6 @@ async function finalizePayment(session: StripeSession) {
             status: "available",
           },
         ],
-        { onConflict: "stripe_session_id" },
       );
 
     if (creditError) throw new Error(creditError.message);
