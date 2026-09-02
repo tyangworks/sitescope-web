@@ -120,8 +120,7 @@ HTTP `200`:
   "success": true,
   "cached": false,
   "id": "uuid",
-  "screenshot": "https://.../screenshot.jpg",
-  "report": {}
+  "screenshot": "https://.../screenshot.jpg"
 }
 ```
 
@@ -131,58 +130,11 @@ HTTP `200`:
 | `cached` | boolean | Yes | Whether an existing report row was reused. |
 | `id` | string | Yes | Supabase `reports.id` UUID. |
 | `screenshot` | string | Yes | Public Supabase Storage URL. |
-| `report` | object | Yes | Shape differs between cache hit and cache miss. |
 
-The Web callers currently consume only `id` and use it for
-`/report/[id]`. They do not depend on the returned `report` object.
-
-### Fresh Analysis Payload
-
-For `cached: false`, `report` is the in-memory AI/fallback object:
-
-```json
-{
-  "score": 70,
-  "summary": "Summary",
-  "seoIssues": [
-    {
-      "issue": "Issue name",
-      "impact": "High",
-      "fix": "Recommended fix"
-    }
-  ],
-  "contentSuggestions": [
-    {
-      "area": "SEO",
-      "suggestion": "Suggestion"
-    }
-  ]
-}
-```
-
-### Cached Analysis Payload
-
-For `cached: true`, `report` is the complete Supabase row and uses database
-field names:
-
-```json
-{
-  "id": "uuid",
-  "url": "https://example.com/",
-  "score": 70,
-  "summary": "Summary",
-  "screenshot_url": "https://.../screenshot.jpg",
-  "is_paid": false,
-  "seo_issues": [],
-  "content_suggestions": [],
-  "fix_plans": [],
-  "created_at": "timestamp",
-  "updated_at": "timestamp"
-}
-```
-
-This fresh/cached shape difference is inconsistent. It is currently tolerated
-only because Web uses `id`, not `report`.
+Crawler deliberately does not return report body fields on either fresh or
+cached analysis. The Web BFF reads the persisted row server-side and returns an
+authorized projection through `GET /api/reports/[id]`. This prevents direct
+Crawler callers from bypassing report authorization.
 
 ### Report ID Behavior
 
@@ -210,7 +162,8 @@ only because Web uses `id`, not `report`.
 - Newest matching row is selected.
 - Cache lookup occurs before per-IP rate-limit enforcement.
 - A cache hit returns immediately without crawling, AI, or a new attempt row.
-- The cache response currently exposes the complete report row.
+- The cache response includes only ID and screenshot metadata; Web clones the
+  persisted content into a separately owned unpaid row.
 
 ### Error Contract
 
