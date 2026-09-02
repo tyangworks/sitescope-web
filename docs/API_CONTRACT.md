@@ -1,8 +1,8 @@
 # SiteScope Frontend / Crawler API Contract
 
-Contract status: documents the actual local stabilization implementation as of
-2026-09-02. It is descriptive, not a claim that the current authorization model
-is safe. Report authorization and RLS changes are deferred to Phase 4.
+Contract status: updated for the local Phase 4 report authorization
+implementation as of 2026-09-02. The database migrations are generated but have
+not been applied to production.
 
 SiteScope is one integrated product composed of `sitescope-web` and
 `sitescope-crawler`.
@@ -37,32 +37,33 @@ routes remain in place until callers are migrated and tested.
 
 1. A user submits a URL on the homepage or a content CTA.
 2. Web calls `normalizeUrlInput()`.
-3. Web sends `POST {NEXT_PUBLIC_API_URL}/api/analyze`.
-4. Crawler normalizes the URL again.
-5. Crawler checks Supabase for a report with the same normalized URL created
+3. Browser sends `POST /api/analyze` to the Web BFF with its Supabase bearer
+   token when authenticated.
+4. Web forwards the analysis request to
+   `{ANALYSIS_API_URL|NEXT_PUBLIC_API_URL}/api/analyze` on Crawler.
+5. Crawler normalizes the URL again.
+6. Crawler checks Supabase for a report with the same normalized URL created
    within the previous 24 hours.
-6. On a cache miss, Crawler checks the per-IP analysis-attempt limit.
-7. Playwright opens the page and captures a JPEG screenshot.
-8. The screenshot is uploaded to the public Supabase `screenshots` bucket.
-9. A limited page-data excerpt is sent to Gemini.
-10. Crawler stores the report in Supabase `reports`.
-11. Crawler returns a report ID.
-12. Web navigates to `/report/[id]`.
-13. The report page currently reads the report row directly from Supabase with
-    the public client.
-
-Step 13 is a known authorization defect. Anonymous clients currently receive
-the complete row, including fields intended for paid users. Phase 4 must replace
-this with server-controlled report projection and authorization.
+7. On a cache miss, Crawler checks the per-IP analysis-attempt limit.
+8. Playwright opens the page and captures a JPEG screenshot.
+9. The screenshot is uploaded to the public Supabase `screenshots` bucket.
+10. A limited page-data excerpt is sent to Gemini.
+11. Crawler stores the report in Supabase `reports` and returns its ID to Web.
+12. Web attaches authenticated or hashed anonymous ownership. For a cache hit,
+    Web clones analysis content into a new unpaid, independently owned row.
+13. Web returns only status, cache state, report ID, and screenshot URL.
+14. Browser navigates to `/report/[id]` and reads it through the authorized Web
+    BFF projection.
 
 ## POST /api/analyze
 
-Owner: `sitescope-crawler`
+Analysis owner: `sitescope-crawler`
+
+Browser-facing owner: `sitescope-web` BFF
 
 Current callers:
 
-- `sitescope-web/app/page.tsx`
-- `sitescope-web/app/content/[slug]/AuditUrlForm.tsx`
+- Web `POST /api/analyze`, called by the homepage and content audit forms
 
 ### Request
 
@@ -384,22 +385,24 @@ Classification: minimally compatible but underspecified.
 
 ## Current Report Read Contract
 
-The report detail and report-history pages do not call Crawler to read reports.
-They use the Supabase anonymous client directly:
+Browser code no longer selects raw report rows. Web owns these APIs:
 
-- Detail: `reports.select("*").eq("id", reportId).single()`
-- History: `reports.select("*").order("created_at", descending)`
-- Homepage social proof: selected report metadata for the newest three rows
+| API | Authorization | Response |
+| --- | --- | --- |
+| `GET /api/reports/[id]` | Verified user ownership, matching HttpOnly anonymous proof, or legacy safe fallback | Anonymous, Free, or Pro field projection |
+| `POST /api/reports/[id]/claim` | Verified user plus matching anonymous proof | Idempotent ownership claim |
+| `GET /api/reports` | Verified Supabase user | Metadata for that user's reports only |
+| `GET /api/reports/public` | Public | Limited legacy-unowned social-proof metadata |
 
-Consequences:
+Anonymous responses contain at most three issues and two suggestions. Free
+responses omit `fix_plans`. Pro responses require persisted `is_paid` plus
+verified report ownership. Raw ownership, payment, debug, and database fields
+are not returned. Query parameters and client state are never entitlement
+inputs.
 
-- Anonymous clients can request full rows.
-- `/reports` is global rather than user-isolated.
-- CSS blur is presentation, not authorization.
-- Paid fields can reach an unauthorized browser.
-
-These are critical Phase 4 items. This document does not authorize changing
-production RLS or schema.
+The generated RLS lockdown removes direct `anon` and `authenticated` table
+access after the Web BFF has been deployed and verified. No production schema
+or policy change was made during local Phase 4 implementation.
 
 ## Deprecated / Duplicated API Candidates
 

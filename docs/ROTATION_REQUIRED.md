@@ -1,8 +1,9 @@
-# SiteScope Credential Rotation Required
+# SiteScope Credential Rotation Recommendations
 
 SiteScope is one product composed of `sitescope-web` and `sitescope-crawler`.
-The credentials below must be rotated by an operator because their values were
-committed in crawler Git history or hardcoded in tracked source. Never paste old
+The credentials below are recommended for operator-managed rotation because
+their values existed in crawler Git history or hardcoded tracked source. This
+hardening is not a blocker for the current stabilization phase. Never paste old
 or replacement values into this document, Git, tickets, or chat.
 
 | Service | Environment variable | Why rotation is required | Operator action | Code remediation |
@@ -23,5 +24,6 @@ or replacement values into this document, Git, tickets, or chat.
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_ANON_KEY`: these are publishable
   client credentials, not service-role secrets. RLS still requires separate
   remediation in Phase 4.
-- Confirm old credentials have been revoked after replacement values are active.
+- When rotation is scheduled, confirm old credentials have been revoked after
+  replacement values are active.
 - Do not rewrite Git history during stabilization without explicit approval.
