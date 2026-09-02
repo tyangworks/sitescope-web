@@ -71,3 +71,10 @@ test("report admin UI is driven by server identity and the Web BFF", () => {
   assert.match(reportPage, /\/api\/admin\/reports\//);
   assert.doesNotMatch(reportPage, /admin_key|x-admin-key/);
 });
+
+test("language state uses a stable server snapshot during hydration", () => {
+  const i18n = source("../lib/i18n.ts");
+  assert.match(i18n, /useSyncExternalStore/);
+  assert.match(i18n, /getServerLanguage/);
+  assert.doesNotMatch(i18n, /window\.location\.reload/);
+});

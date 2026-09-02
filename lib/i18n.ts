@@ -1,5 +1,7 @@
 // lib/i18n.ts
 
+import { useSyncExternalStore } from "react";
+
 export type Language = "en" | "zh";
 
 export interface Translations {
@@ -385,33 +387,44 @@ export const translations: Record<Language, Translations> = {
   },
 };
 
+const languageChangeEvent = "sitescope-language-change";
+
+function getBrowserLanguage(): Language {
+  const saved = localStorage.getItem("language");
+  if (saved === "en" || saved === "zh") return saved;
+  return navigator.language.split("-")[0] === "zh" ? "zh" : "en";
+}
+
+function getServerLanguage(): Language {
+  return "en";
+}
+
+function subscribeToLanguage(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(languageChangeEvent, onStoreChange);
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(languageChangeEvent, onStoreChange);
+  };
+}
+
 // Language context hook
 export function useTranslation() {
-  // This would typically use React Context, but for simplicity we'll use localStorage
-  const getLanguage = (): Language => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("language") as Language;
-      if (saved && (saved === "en" || saved === "zh")) {
-        return saved;
-      }
-      // Detect browser language
-      const browserLang = navigator.language.split("-")[0];
-      return browserLang === "zh" ? "zh" : "en";
-    }
-    return "en";
-  };
+  const language = useSyncExternalStore(
+    subscribeToLanguage,
+    getBrowserLanguage,
+    getServerLanguage,
+  );
 
   const setLanguage = (lang: Language) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("language", lang);
-      window.location.reload();
-    }
+    localStorage.setItem("language", lang);
+    window.dispatchEvent(new Event(languageChangeEvent));
   };
 
-  const t = translations[getLanguage()];
+  const t = translations[language];
 
   return {
-    language: getLanguage(),
+    language,
     setLanguage,
     t,
   };
