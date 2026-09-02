@@ -1,0 +1,51 @@
+# Production Rollout Record
+
+Status: in progress. Migration 2 has not been executed.
+
+## Crawler Release
+
+- Previous production commit: `65fdd904339580b2b9774176068c19db499f0257`
+- Active release commit: `26f27c5ba7e63ef11668ca306923d1116bbb3e15`
+- Active release directory:
+  `/home/admin/releases/sitescope-crawler/26f27c5ba7e63ef11668ca306923d1116bbb3e15`
+- Rollback source: `/home/admin/sitescope-crawler`
+- Process: PM2 `sitescope-backend`, TCP 4000
+- Public path: Cloudflare Tunnel to `127.0.0.1:4000`
+
+The release passed `npm ci`, syntax/tests, a temporary-port check, local
+health/version checks, public health/version checks, and production-origin CORS
+checks. The first PM2 reload retained the old script path; it was rolled back.
+The successful activation explicitly recreated the process from the immutable
+release and saved the process list.
+
+PM2 boot support is installed and enabled. A cold-boot recovery test remains a
+separate maintenance-window task; no reboot was performed during this rollout.
+
+## Database Sequence
+
+1. Record live `reports` columns, policies, grants, row count, and backup status.
+2. Apply only `202609020001_add_report_ownership.sql`.
+3. Verify old Web report reads and a controlled crawler insert.
+4. Deploy and validate the new Web in Preview.
+5. Promote the validated Web while retaining the prior Vercel deployment.
+6. Run production acceptance tests.
+7. Stop and request explicit approval for migration 2.
+
+Migration 1 SHA-256:
+`76ED845D9CF00ED83C3EAAF5A58683DDDC5596217C70A5715A8DCCE3C0EA724E`
+
+## Web Release
+
+The stabilization branch is `stabilize/sitescope`. The release must use an
+explicit clean commit and must not be merged to `main` as part of this rollout.
+Preview and production deployment identifiers, URLs, and rollback target are
+recorded after Vercel supplies them.
+
+## Known Operational Risks
+
+- PM2 cold-boot recovery is enabled but not yet proven by an actual reboot.
+- Production credential rotation remains recommended security hardening.
+- Dependency audits currently report unresolved findings; automated force fixes
+  are intentionally excluded from this rollout.
+- Migration 2 remains the step that closes direct database report access and is
+  forbidden until the BFF path passes production acceptance.
