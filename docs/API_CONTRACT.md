@@ -1,0 +1,451 @@
+# SiteScope Frontend / Crawler API Contract
+
+Contract status: documents the actual local stabilization implementation as of
+2026-09-02. It is descriptive, not a claim that the current authorization model
+is safe. Report authorization and RLS changes are deferred to Phase 4.
+
+SiteScope is one integrated product composed of `sitescope-web` and
+`sitescope-crawler`.
+
+## Responsibility Boundary
+
+### sitescope-web
+
+- UI and navigation
+- Authentication and user sessions
+- Report access authorization
+- User report history and anonymous report claiming
+- Stripe checkout, webhook processing, and payment entitlements
+- Contact forms and Resend notifications
+- SEO/content pages
+- Web/BFF API routes
+
+### sitescope-crawler
+
+- URL validation and normalization
+- SSRF protection
+- Playwright crawling and screenshots
+- Deterministic SEO and performance measurements
+- AI interpretation
+- Structured report generation
+- Analysis persistence
+
+The target boundary above is not fully implemented yet. Duplicated business
+routes remain in place until callers are migrated and tested.
+
+## Current Analysis Flow
+
+1. A user submits a URL on the homepage or a content CTA.
+2. Web calls `normalizeUrlInput()`.
+3. Web sends `POST {NEXT_PUBLIC_API_URL}/api/analyze`.
+4. Crawler normalizes the URL again.
+5. Crawler checks Supabase for a report with the same normalized URL created
+   within the previous 24 hours.
+6. On a cache miss, Crawler checks the per-IP analysis-attempt limit.
+7. Playwright opens the page and captures a JPEG screenshot.
+8. The screenshot is uploaded to the public Supabase `screenshots` bucket.
+9. A limited page-data excerpt is sent to Gemini.
+10. Crawler stores the report in Supabase `reports`.
+11. Crawler returns a report ID.
+12. Web navigates to `/report/[id]`.
+13. The report page currently reads the report row directly from Supabase with
+    the public client.
+
+Step 13 is a known authorization defect. Anonymous clients currently receive
+the complete row, including fields intended for paid users. Phase 4 must replace
+this with server-controlled report projection and authorization.
+
+## POST /api/analyze
+
+Owner: `sitescope-crawler`
+
+Current callers:
+
+- `sitescope-web/app/page.tsx`
+- `sitescope-web/app/content/[slug]/AuditUrlForm.tsx`
+
+### Request
+
+Method: `POST`
+
+Content type: `application/json`
+
+Current JSON body:
+
+```json
+{
+  "url": "https://example.com/"
+}
+```
+
+| Field | Type | Required | Current behavior |
+| --- | --- | --- | --- |
+| `url` | string | Yes | Web normalizes first; Crawler normalizes again. |
+| `language` | n/a | No | Not sent, read, or supported by the current Crawler. |
+| Other fields | unknown | No | Ignored by the current implementation. |
+
+An optional `x-admin-key` request header is recognized by Crawler. A valid
+value bypasses the per-IP free-analysis limit. The current Web audit forms do
+not send this header.
+
+### URL Normalization
+
+Web currently:
+
+- Trims whitespace and wrapping punctuation.
+- Adds `https://` when no HTTP(S) scheme is present.
+- Removes URL fragments.
+- Removes default ports and trailing path slashes.
+- Rejects URL credentials and non-HTTP(S) protocols.
+- Still accepts localhost and IP literals.
+
+Crawler currently:
+
+- Trims the value.
+- Adds `https://` when the input does not start with HTTP(S).
+- Lowercases the hostname.
+- Normalizes trailing path slashes.
+- Does not yet block localhost, private IPs, link-local targets, DNS rebinding,
+  or redirect chains to private addresses.
+
+SSRF remediation is intentionally deferred to Phase 9.
+
+### Success Response
+
+HTTP `200`:
+
+```json
+{
+  "success": true,
+  "cached": false,
+  "id": "uuid",
+  "screenshot": "https://.../screenshot.jpg",
+  "report": {}
+}
+```
+
+| Field | Type | Always present | Meaning |
+| --- | --- | --- | --- |
+| `success` | boolean | Yes | Always `true` on a successful response. |
+| `cached` | boolean | Yes | Whether an existing report row was reused. |
+| `id` | string | Yes | Supabase `reports.id` UUID. |
+| `screenshot` | string | Yes | Public Supabase Storage URL. |
+| `report` | object | Yes | Shape differs between cache hit and cache miss. |
+
+The Web callers currently consume only `id` and use it for
+`/report/[id]`. They do not depend on the returned `report` object.
+
+### Fresh Analysis Payload
+
+For `cached: false`, `report` is the in-memory AI/fallback object:
+
+```json
+{
+  "score": 70,
+  "summary": "Summary",
+  "seoIssues": [
+    {
+      "issue": "Issue name",
+      "impact": "High",
+      "fix": "Recommended fix"
+    }
+  ],
+  "contentSuggestions": [
+    {
+      "area": "SEO",
+      "suggestion": "Suggestion"
+    }
+  ]
+}
+```
+
+### Cached Analysis Payload
+
+For `cached: true`, `report` is the complete Supabase row and uses database
+field names:
+
+```json
+{
+  "id": "uuid",
+  "url": "https://example.com/",
+  "score": 70,
+  "summary": "Summary",
+  "screenshot_url": "https://.../screenshot.jpg",
+  "is_paid": false,
+  "seo_issues": [],
+  "content_suggestions": [],
+  "fix_plans": [],
+  "created_at": "timestamp",
+  "updated_at": "timestamp"
+}
+```
+
+This fresh/cached shape difference is inconsistent. It is currently tolerated
+only because Web uses `id`, not `report`.
+
+### Report ID Behavior
+
+- Generated by PostgreSQL as a UUID with `gen_random_uuid()`.
+- Stable for the lifetime of the report row.
+- A cache hit returns the existing row's ID.
+- A cache miss returns the newly inserted row's ID.
+- The response does not expose a separate normalized-URL field.
+- Web treats the ID as an opaque string.
+
+### Screenshot Behavior
+
+- Captured as JPEG at a 1280x800 viewport with device scale factor 2.
+- Uploaded before the report row is inserted.
+- Stored in the public Supabase `screenshots` bucket.
+- Returned as `screenshot` from `/api/analyze`.
+- Stored as `reports.screenshot_url`.
+- A failure after upload but before report persistence can leave an orphaned
+  screenshot.
+
+### Cache Behavior
+
+- Cache key: exact normalized `reports.url`.
+- Cache lifetime: 24 hours.
+- Newest matching row is selected.
+- Cache lookup occurs before per-IP rate-limit enforcement.
+- A cache hit returns immediately without crawling, AI, or a new attempt row.
+- The cache response currently exposes the complete report row.
+
+### Error Contract
+
+Current errors use a human-readable `error` string and do not provide a stable
+machine error code.
+
+```json
+{
+  "error": "Human-readable message"
+}
+```
+
+| HTTP status | Current cause | Retry guidance |
+| --- | --- | --- |
+| `400` | Missing/empty URL after Crawler normalization. | Correct the request; do not retry unchanged. |
+| `403` | Origin rejected by the CORS allowlist. | Correct the configured origin; do not retry unchanged. |
+| `429` | A non-admin IP has an analysis-attempt row within 24 hours. | Retry after the 24-hour window or use an existing cached report. |
+| `500` | Crawl, storage, database, or other analysis failure. | Potentially transient, but current failed-attempt recording may cause the next request to return 429. |
+| non-JSON proxy/platform error | Route or deployment mismatch. | Web currently assumes JSON for `/api/analyze`; inspect deployment/version first. |
+
+An invalid AI response does not return an error. Crawler silently substitutes a
+basic fallback report and returns HTTP 200. This behavior is planned for
+replacement by validated structured output in Phase 8.
+
+## Persistence Contract
+
+### reports Table
+
+| Database field | Type | Crawler writes | Web consumes | Classification |
+| --- | --- | --- | --- | --- |
+| `id` | UUID | Database generated | Yes | Compatible |
+| `url` | text | Normalized URL | Yes | Compatible |
+| `score` | integer | `reportJson.score` | Yes | Compatible but not schema-validated |
+| `summary` | text | `reportJson.summary` | Yes | Compatible but not schema-validated |
+| `screenshot_url` | text | Public storage URL | Yes | Compatible |
+| `is_paid` | boolean | `false` for new reports | Yes | Business field; target owner is Web/BFF |
+| `seo_issues` | JSONB | `reportJson.seoIssues` | Yes | Naming conversion is intentional |
+| `content_suggestions` | JSONB | `reportJson.contentSuggestions` | Yes | Naming conversion is intentional |
+| `fix_plans` | JSONB | Not written by analysis | Yes | Missing implementation |
+| `created_at` | timestamp | Database default | Yes | Compatible |
+| `updated_at` | timestamp | Database trigger | Not materially used | Compatible |
+
+### Issue Shape Consumed by Web
+
+```ts
+type ReportIssue = {
+  issue: string;
+  impact: string;
+  fix: string;
+};
+```
+
+### Content Suggestion Shape Consumed by Web
+
+```ts
+type ReportSuggestion = {
+  area: string;
+  suggestion: string;
+};
+```
+
+### Fix Plan Shape Expected by Web
+
+```ts
+type FixPlan = {
+  step: number;
+  action: string;
+  code_snippet?: string;
+  priority: "high" | "medium" | "low";
+};
+```
+
+Crawler does not currently request, validate, or persist this fix-plan shape.
+The database default is an empty array, so paid reports can render no Pro fix
+plan.
+
+## Contract Mismatch Matrix
+
+### Overall score
+
+FRONTEND EXPECTS: `reports.score` as a number.
+
+CRAWLER RETURNS: `report.score` and writes `reports.score`.
+
+DATABASE STORES: integer constrained to 0-100 or null.
+
+Classification: compatible, but AI output is not validated before insertion.
+
+### Issues
+
+FRONTEND EXPECTS: `reports.seo_issues[]` with `issue`, `impact`, and `fix`.
+
+CRAWLER RETURNS: fresh payload `seoIssues[]`; cached payload
+`seo_issues[]`.
+
+DATABASE STORES: `seo_issues` JSONB.
+
+Classification: persistence is compatible; direct API response is inconsistent.
+
+### Summary
+
+FRONTEND EXPECTS: `reports.summary`.
+
+CRAWLER RETURNS: `report.summary`.
+
+DATABASE STORES: `summary`.
+
+Classification: compatible.
+
+### Screenshot
+
+FRONTEND EXPECTS: `reports.screenshot_url`.
+
+CRAWLER RETURNS: top-level `screenshot`; cached `report.screenshot_url`.
+
+DATABASE STORES: `screenshot_url`.
+
+Classification: compatible through persistence; response naming differs.
+
+### Payment state
+
+FRONTEND EXPECTS: `reports.is_paid`.
+
+CRAWLER RETURNS: only within a cached full-row payload.
+
+DATABASE STORES: `is_paid`.
+
+Classification: business concern duplicated in Crawler; target owner is Web/BFF.
+
+### Fix plans and code snippets
+
+FRONTEND EXPECTS: `reports.fix_plans[]`.
+
+CRAWLER RETURNS: no fix plans.
+
+DATABASE STORES: `fix_plans`, default empty array.
+
+Classification: planned but not implemented; Pro contract is incomplete.
+
+### Category scores, evidence, and performance
+
+FRONTEND EXPECTS: no stable typed fields yet, although UI loading text claims
+performance checks.
+
+CRAWLER RETURNS: no category scores, evidence model, or measured performance
+metrics.
+
+DATABASE STORES: no corresponding fields in the current schema.
+
+Classification: missing; Phase 8 report contract work is required.
+
+### Language
+
+FRONTEND EXPECTS: localized UI, but sends no analysis-language field.
+
+CRAWLER RETURNS: English prompt/fallback output.
+
+DATABASE STORES: no report language.
+
+Classification: missing.
+
+### Status and error code
+
+FRONTEND EXPECTS: HTTP status plus `error` message.
+
+CRAWLER RETURNS: no stable `status` or machine-readable error code in analysis
+responses.
+
+DATABASE STORES: attempt `status`, not exposed through the API.
+
+Classification: minimally compatible but underspecified.
+
+## Current Report Read Contract
+
+The report detail and report-history pages do not call Crawler to read reports.
+They use the Supabase anonymous client directly:
+
+- Detail: `reports.select("*").eq("id", reportId).single()`
+- History: `reports.select("*").order("created_at", descending)`
+- Homepage social proof: selected report metadata for the newest three rows
+
+Consequences:
+
+- Anonymous clients can request full rows.
+- `/reports` is global rather than user-isolated.
+- CSS blur is presentation, not authorization.
+- Paid fields can reach an unauthorized browser.
+
+These are critical Phase 4 items. This document does not authorize changing
+production RLS or schema.
+
+## Deprecated / Duplicated API Candidates
+
+No route in this section may be removed until its callers are migrated and the
+replacement is tested.
+
+| Concern | Current Web implementation/caller | Current Crawler implementation/caller | Current status |
+| --- | --- | --- | --- |
+| Contact persistence | `/contact` calls Next `POST /api/contact`. | `POST /api/contact` exists; no current Web caller found. | Crawler duplicate candidate |
+| Resend notification | Next contact route calls Resend. | Crawler contact route also calls Resend. | Duplicated |
+| Checkout creation | Next `POST /api/create-checkout-session` exists but no current caller was found. | Report and Pro pages call Crawler `POST /api/create-checkout-session`. | Active ownership conflicts with target |
+| Credit redemption | Next `POST /api/redeem-pro-credit` exists but no current caller was found. | Report page calls Crawler `POST /api/redeem-pro-credit`. | Active ownership conflicts with target |
+| Checkout finalization | Success page calls Crawler `GET /api/finalize-checkout-session`. | Crawler finalizes Stripe session and entitlement. | Must migrate to Web/BFF |
+| Stripe webhook | No Next webhook route exists. | Stripe is expected to call Crawler `POST /api/webhook`. | Must migrate before deletion |
+| Report payment status | No current Web caller found. | Crawler `GET /api/report-payment-status`. | Unused candidate; verify external callers |
+| Checkout status | No current Web caller found. | Crawler `GET /api/checkout-status`. | Unused candidate; verify external callers |
+| Admin report deletion | Report page calls Crawler `DELETE /api/report/:id`. | Crawler performs deletion. | Business/admin ownership requires later decision |
+
+Current source-level caller mapping does not prove that no external Stripe
+webhook, operator script, or older deployed frontend calls a route. Production
+configuration must be checked before removal.
+
+## Production Compatibility Note
+
+The read-only production audit found that `api.sitescope.fyi` currently runs
+commit `65fdd90` and exposes only the old `POST /api/analyze`. It does not yet
+serve the local stabilization routes or this documented local implementation.
+
+Therefore:
+
+- This contract describes the current local stabilization source.
+- The production analyze endpoint is older and returns older human messages.
+- Deployment must not occur until later phases and explicit operator approval.
+- `GET /health` and `GET /version` were added locally in Phase 2 to make
+  future version comparison explicit.
+
+## Contract Evolution Rules
+
+- Do not rename current report or payment fields casually.
+- Add fields compatibly before removing old fields.
+- Keep report IDs opaque and stable.
+- Return JSON errors from application routes.
+- Introduce stable machine error codes before clients depend on them.
+- Make fresh and cached analysis responses use one validated schema in Phase 8.
+- Move SaaS business APIs to Web/BFF only after caller migration and tests.
+- Never expose unauthorized report fields to a browser.
+- Keep Stripe webhook processing authoritative and idempotent.
+- Do not change production schema, RLS, or deployment during this phase.
+
