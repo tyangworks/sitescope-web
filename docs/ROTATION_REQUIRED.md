@@ -12,6 +12,8 @@ or replacement values into this document, Git, tickets, or chat.
 | Stripe webhook | `STRIPE_WEBHOOK_SECRET` | The signing secret was present in tracked crawler `.env` history. | Roll the signing secret for the affected Stripe webhook endpoint and update the owning runtime secret store. | Complete locally: runtime code reads the environment variable. |
 | Supabase | `SUPABASE_SERVICE_ROLE_KEY` | The privileged key was present in tracked crawler `.env` history. | Rotate the service-role/API key through the Supabase project settings using the least disruptive supported procedure, then update authorized server runtimes only. | Complete locally: runtime code reads the environment variable. |
 | SiteScope administration | `ADMIN_KEY` | The administrator secret was present in tracked crawler `.env` history. | Generate a new high-entropy value and update the crawler deployment secret store and authorized operator setup. | Complete locally: runtime code reads the environment variable. |
+| Cloudflare Tunnel | Tunnel service token | The production token is passed in the systemd process command line and was exposed during the authorized server audit. | Rotate the tunnel token in Cloudflare Zero Trust, update the production systemd credential configuration during an approved maintenance window, then revoke the old token. | Pending external operator action; no production change was made. |
+| GitHub | Production deployment credential | The production Git remote embeds an HTTPS credential in its URL. | Revoke the credential in GitHub, replace it with a least-privilege deployment credential, and store it outside the repository URL during an approved production change. | Pending external operator action; audit output was redacted. |
 
 ## Verification Items
 
