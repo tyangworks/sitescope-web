@@ -1,15 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { Globe, Calendar, ArrowRight, Star, Plus, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { authenticatedFetch } from "@/lib/authFetch";
 import { useTranslation } from "@/lib/i18n";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
 
 type Report = {
   id: string;
@@ -23,17 +18,20 @@ type Report = {
 export default function ReportsList() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authRequired, setAuthRequired] = useState(false);
   const { t, language, setLanguage } = useTranslation();
 
   useEffect(() => {
     async function fetchReports() {
       try {
-        const { data, error } = await supabase
-          .from("reports")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (!error) setReports(data || []);
+        const response = await authenticatedFetch("/api/reports");
+        if (response.status === 401) {
+          setAuthRequired(true);
+          return;
+        }
+        if (!response.ok) throw new Error("Failed to load reports.");
+        const data = await response.json();
+        setReports(data.reports || []);
       } catch (error) {
         console.error("Failed to fetch reports:", error);
       } finally {
@@ -53,12 +51,6 @@ export default function ReportsList() {
       </main>
     );
   }
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "from-green-400 to-emerald-500";
-    if (score >= 60) return "from-yellow-400 to-orange-500";
-    return "from-red-400 to-rose-500";
-  };
 
   return (
     <main className="min-h-screen bg-[#0B0F1A]">
@@ -118,7 +110,19 @@ export default function ReportsList() {
         </div>
 
         {/* Reports Grid */}
-        {reports.length > 0 ? (
+        {authRequired ? (
+          <div className="border-2 border-dashed border-[#1F2937] bg-[#111827] py-20 text-center">
+            <Globe className="mx-auto mb-6 h-12 w-12 text-[#6B7280]" />
+            <h3 className="mb-3 text-xl font-bold text-white">Sign in to view saved reports</h3>
+            <p className="mx-auto mb-6 max-w-md text-[#9CA3AF]">
+              Your report history is private and only available to your account.
+            </p>
+            <Link href="/login" className="inline-flex items-center gap-2 rounded-xl px-6 py-3 font-semibold text-white gradient-bg">
+              Sign In
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        ) : reports.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reports.map((report) => (
               <Link

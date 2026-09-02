@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Loader2, MousePointer2 } from "lucide-react";
+import { authenticatedFetch } from "@/lib/authFetch";
 import { normalizeUrlInput } from "@/lib/normalizeUrl";
 
 function errorMessage(error: unknown, fallback: string) {
@@ -39,9 +40,7 @@ export default function AuditUrlForm({
     setLoading(true);
 
     try {
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi";
-      const response = await fetch(`${apiUrl}/api/analyze`, {
+      const response = await authenticatedFetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: normalized.url }),

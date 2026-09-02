@@ -2,17 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, AlertCircle, Globe, MousePointer2 } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { authenticatedFetch } from "@/lib/authFetch";
 import { normalizeUrlInput } from "@/lib/normalizeUrl";
 import { useTranslation } from "@/lib/i18n"; // 添加翻译 hook
-
-// Supabase Connection
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
 
 type RecentReport = {
   id: string;
@@ -42,12 +36,14 @@ export default function Home() {
   // Fetch recent reports for social proof
   useEffect(() => {
     async function fetchRecent() {
-      const { data } = await supabase
-        .from("reports")
-        .select("id, url, score, screenshot_url")
-        .order("created_at", { ascending: false })
-        .limit(3);
-      if (data) setRecentReports(data);
+      try {
+        const response = await fetch("/api/reports/public");
+        if (!response.ok) return;
+        const data = await response.json();
+        setRecentReports(data.reports || []);
+      } catch {
+        // Social proof is optional and must not block the audit form.
+      }
     }
     fetchRecent();
   }, []);
@@ -79,16 +75,13 @@ export default function Home() {
     setLoading(true);
 
     try {
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi";
-
-      const res = await fetch(`${apiUrl}/api/analyze`, {
+      const res = await authenticatedFetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: normalizedUrl.url }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data.error || "Audit failed.");
 
       // Redirect to report detail page
       router.push(`/report/${data.id}`);

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { useParams } from "next/navigation";
 import {
   AlertCircle,
@@ -22,47 +21,17 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { authenticatedFetch } from "@/lib/authFetch";
 import { useTranslation } from "@/lib/i18n";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+import type {
+  AuthorizedReportResponse,
+  FixPlan,
+  ReportIssue,
+  ReportSuggestion,
+} from "@/lib/reports/types";
 
 const paypalDonateUrl =
   "https://www.paypal.com/donate/?hosted_button_id=DMPQU9NWDQDYE";
-
-// Type definitions
-type ReportIssue = {
-  issue: string;
-  impact: string;
-  fix: string;
-};
-
-type ReportSuggestion = {
-  area: string;
-  suggestion: string;
-};
-
-type FixPlan = {
-  step: number;
-  action: string;
-  code_snippet?: string;
-  priority: "high" | "medium" | "low";
-};
-
-type ReportRecord = {
-  id: string;
-  url: string;
-  created_at: string;
-  score: number;
-  summary: string;
-  screenshot_url: string;
-  is_paid: boolean;
-  seo_issues: ReportIssue[] | null;
-  content_suggestions: ReportSuggestion[] | null;
-  fix_plans?: FixPlan[] | null;
-};
 
 function errorMessage(error: unknown, fallback: string) {
   if (error instanceof Error && error.message) return error.message;
@@ -72,28 +41,23 @@ function errorMessage(error: unknown, fallback: string) {
 export default function ReportDetail() {
   const params = useParams();
   const { t } = useTranslation();
-  const [report, setReport] = useState<ReportRecord | null>(null);
+  const [report, setReport] = useState<AuthorizedReportResponse | null>(null);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [unlocking, setUnlocking] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [emailSubmitted, setEmailSubmitted] = useState(false);
-  const [loadingStep, setLoadingStep] = useState(0);
+  const loadingStep = 0;
 
   const apiUrl = (
     process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi"
   ).replace(/\/+$/, "");
   const reportId = String(params.id || "");
-  const isLocked = report ? !report.is_paid : false;
-
-  // Tier 1: Free - Top 3 issues
-  const freeIssues = report?.seo_issues?.slice(0, 3) || [];
-  // Tier 2: Email unlock - Remaining issues
-  const lockedIssues = report?.seo_issues?.slice(3) || [];
-  // Tier 3: Pro - Fix plans and code snippets
-  const fixPlans = report?.fix_plans || [];
+  const isPro = report?.access_level === "pro";
+  const isAnonymous = report?.access_level === "anonymous";
+  const visibleIssues = report?.seo_issues || [];
+  const fixPlans = report?.access_level === "pro" ? report.fix_plans : [];
 
   const loadingSteps = [
     { icon: <Globe className="w-5 h-5" />, text: "Fetching site structure" },
@@ -118,13 +82,23 @@ export default function ReportDetail() {
   const fetchReport = useCallback(async () => {
     if (!reportId) return;
     try {
-      const { data, error } = await supabase
-        .from("reports")
-        .select("*")
-        .eq("id", reportId)
-        .single();
-      if (error) throw error;
-      setReport(data as ReportRecord);
+      let response = await authenticatedFetch(`/api/reports/${encodeURIComponent(reportId)}`);
+      let data = await parseJsonSafe(response);
+      if (!response.ok) throw new Error(data.error || "Failed to load report.");
+
+      if (data.access_level === "anonymous") {
+        const claimResponse = await authenticatedFetch(
+          `/api/reports/${encodeURIComponent(reportId)}/claim`,
+          { method: "POST" },
+        );
+        if (claimResponse.ok) {
+          response = await authenticatedFetch(`/api/reports/${encodeURIComponent(reportId)}`);
+          data = await parseJsonSafe(response);
+          if (!response.ok) throw new Error(data.error || "Failed to load claimed report.");
+        }
+      }
+
+      setReport(data as AuthorizedReportResponse);
     } catch (error: unknown) {
       toast.error(errorMessage(error, "Failed to load report."));
     } finally {
@@ -148,37 +122,6 @@ export default function ReportDetail() {
 
     return () => window.clearTimeout(timer);
   }, []);
-
-  async function handleEmailUnlock() {
-    if (!email) {
-      toast.error("Please enter your email address.");
-      return;
-    }
-
-    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-    if (!validEmail) {
-      toast.error("Please enter a valid email address.");
-      return;
-    }
-
-    try {
-      // Store email in Supabase for marketing
-      const { error } = await supabase.from("email_unlocks").insert([
-        {
-          report_id: reportId,
-          email: email.trim(),
-          created_at: new Date().toISOString(),
-        },
-      ]);
-
-      if (error) throw error;
-
-      setEmailSubmitted(true);
-      toast.success("Email submitted! Full report unlocked.");
-    } catch (error: unknown) {
-      toast.error(errorMessage(error, "Failed to submit email."));
-    }
-  }
 
   async function handleProUnlock() {
     if (!reportId) {
@@ -534,7 +477,7 @@ export default function ReportDetail() {
           </div>
 
           <div className="space-y-4">
-            {freeIssues.map((item: ReportIssue, i: number) => (
+            {visibleIssues.map((item: ReportIssue, i: number) => (
               <div
                 key={`free-${i}`}
                 className="bg-[#111827] p-6 rounded-2xl border border-[#1F2937] shadow-lg hover:border-[#3A8DFF]/50 transition-all"
@@ -570,89 +513,28 @@ export default function ReportDetail() {
           </div>
         </div>
 
-        {/* Tier 2: Email Unlock - Remaining Issues */}
-        <div className="mb-12 relative">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-[#3A8DFF]/20 flex items-center justify-center">
-              <AlertCircle className="w-5 h-5 text-[#3A8DFF]" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">
-                更多问题 (邮箱解锁)
-              </h2>
-              <p className="text-[#9CA3AF] text-sm">输入邮箱解锁完整问题列表</p>
-            </div>
-          </div>
-
-          {!emailSubmitted && (
-            <div className="absolute inset-0 z-20 rounded-2xl bg-[#0B0F1A]/80 backdrop-blur-md flex items-center justify-center p-6">
-              <div className="max-w-md w-full bg-[#111827] rounded-2xl border border-[#1F2937] p-8 shadow-2xl">
-                <div className="flex items-center gap-3 mb-4">
-                  <Lock className="w-6 h-6 text-[#3A8DFF]" />
-                  <h3 className="text-xl font-bold text-white">解锁完整报告</h3>
-                </div>
-                <p className="text-sm text-[#9CA3AF] mb-6 leading-relaxed">
-                  输入您的邮箱地址即可免费解锁所有SEO问题的详细分析。
+        {isAnonymous && (
+          <div className="mb-12 border border-[#1F2937] bg-[#111827] p-8 shadow-lg">
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#3A8DFF]/20">
+                <Lock className="h-5 w-5 text-[#3A8DFF]" />
+              </div>
+              <div className="flex-1">
+                <h2 className="mb-2 text-xl font-bold text-white">Save and unlock your complete Free report</h2>
+                <p className="mb-5 text-sm leading-relaxed text-[#9CA3AF]">
+                  Sign in to securely claim this audit, view every Free finding, and keep it in your private report history.
                 </p>
-                <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  type="email"
-                  placeholder="your@email.com"
-                  className="w-full bg-[#0B0F1A] border border-[#1F2937] rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#3A8DFF] focus:ring-2 focus:ring-[#3A8DFF]/20 text-white placeholder-[#6B7280] transition-all"
-                />
-                <button
-                  onClick={handleEmailUnlock}
-                  className="w-full gradient-bg text-white font-semibold rounded-xl py-3 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                <Link
+                  href={`/login?next=${encodeURIComponent(`/report/${reportId}`)}`}
+                  className="inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold text-white gradient-bg"
                 >
-                  <FileText className="w-5 h-5" />
-                  免费解锁完整报告
-                </button>
-                <p className="text-xs text-[#6B7280] mt-4 text-center">
-                  我们尊重您的隐私，不会发送垃圾邮件
-                </p>
+                  <FileText className="h-5 w-5" />
+                  Sign In to Unlock Free Report
+                </Link>
               </div>
             </div>
-          )}
-
-          <div
-            className={`grid md:grid-cols-2 gap-6 ${!emailSubmitted ? "blur-sm pointer-events-none select-none" : ""}`}
-          >
-            {lockedIssues.map((item: ReportIssue, i: number) => (
-              <div
-                key={i}
-                className="bg-[#111827] p-6 rounded-2xl border border-[#1F2937] shadow-lg hover:border-[#3A8DFF]/50 transition-all"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <h4 className="font-bold text-white text-lg">{item.issue}</h4>
-                  <span
-                    className={`text-xs font-bold px-3 py-1 rounded-full ${
-                      item.impact === "High"
-                        ? "bg-red-500/20 text-red-400"
-                        : item.impact === "Medium"
-                          ? "bg-yellow-500/20 text-yellow-400"
-                          : "bg-blue-500/20 text-blue-400"
-                    }`}
-                  >
-                    {item.impact}
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm text-[#9CA3AF]">
-                    <span className="text-green-400 font-semibold">影响:</span>{" "}
-                    {item.impact}
-                  </p>
-                  <p className="text-sm text-[#9CA3AF]">
-                    <span className="text-[#3A8DFF] font-semibold">
-                      建议修复:
-                    </span>{" "}
-                    {item.fix}
-                  </p>
-                </div>
-              </div>
-            ))}
           </div>
-        </div>
+        )}
 
         {/* Tier 3: Pro - Fix Plans and Code Snippets */}
         <div className="mb-12 relative">
@@ -668,8 +550,8 @@ export default function ReportDetail() {
             </div>
           </div>
 
-          {!report.is_paid && (
-            <div className="absolute inset-0 z-20 rounded-2xl bg-[#0B0F1A]/80 backdrop-blur-md flex items-center justify-center p-6">
+          {!isPro && (
+            <div className="flex items-center justify-center border border-[#1F2937] bg-[#0B0F1A] p-6">
               <div className="max-w-md w-full bg-[#111827] rounded-2xl border border-[#1F2937] p-8 shadow-2xl">
                 <div className="flex items-center gap-3 mb-4">
                   <Lock className="w-6 h-6 text-[#00C2A8]" />
@@ -730,9 +612,7 @@ export default function ReportDetail() {
             </div>
           )}
 
-          <div
-            className={`space-y-6 ${!report.is_paid ? "blur-sm pointer-events-none select-none" : ""}`}
-          >
+          {isPro && <div className="space-y-6">
             {fixPlans.map((plan: FixPlan, i: number) => (
               <div
                 key={i}
@@ -787,7 +667,7 @@ export default function ReportDetail() {
                 </div>
               </div>
             ))}
-          </div>
+          </div>}
         </div>
 
         {/* Content Suggestions */}
