@@ -52,9 +52,17 @@ export async function POST(request: NextRequest) {
   ).replace(/\/+$/, "");
 
   try {
+    const forwardedFor = request.headers.get("x-forwarded-for")
+      ?.split(",")[0]
+      .trim();
+    const upstreamHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (forwardedFor) upstreamHeaders["x-forwarded-for"] = forwardedFor;
+
     const upstream = await fetch(`${analysisApiUrl}/api/analyze`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: upstreamHeaders,
       body: JSON.stringify({
         url: body.url,
         ...(typeof body.language === "string" ? { language: body.language } : {}),

@@ -250,3 +250,12 @@ test("ownership migrations contain no destructive data operations or public gran
     assert.doesNotMatch(sql, /WITH CHECK\s*\(\s*true\s*\)/i);
   }
 });
+
+test("analysis BFF forwards client IP without forwarding authority headers", () => {
+  const source = readFileSync(
+    new URL("../app/api/analyze/route.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /request\.headers\.get\("x-forwarded-for"\)/);
+  assert.doesNotMatch(source, /x-admin-key|isPaid|access=pro/);
+});
