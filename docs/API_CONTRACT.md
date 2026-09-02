@@ -448,4 +448,3 @@ Therefore:
 - Never expose unauthorized report fields to a browser.
 - Keep Stripe webhook processing authoritative and idempotent.
 - Do not change production schema, RLS, or deployment during this phase.
-
