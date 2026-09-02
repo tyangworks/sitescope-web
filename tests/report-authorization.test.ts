@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
@@ -126,6 +127,16 @@ test("paid owner receives Pro content", () => {
   assert.equal(projectProReport(raw).fix_plans[0].code_snippet, "<main />");
 });
 
+test("paid anonymous owner receives report-specific Pro access", () => {
+  assert.equal(
+    getReportAccessLevel(
+      report({ anonymous_token_hash: "owner-hash", is_paid: true }),
+      { userId: null, anonymousTokenHash: "owner-hash" },
+    ),
+    "pro",
+  );
+});
+
 test("free owner cannot elevate access through unrelated client input", () => {
   const raw = report({ user_id: "user-a", is_paid: false });
   const untrustedQuery = { isPaid: "true", access: "pro", userId: "user-a" };
@@ -173,4 +184,69 @@ test("history projection contains no report body or ownership data", () => {
   assert.equal("seo_issues" in item, false);
   assert.equal("fix_plans" in item, false);
   assert.equal("user_id" in item, false);
+});
+
+test("RLS lockdown migration removes public report reads", () => {
+  const sql = readFileSync(
+    new URL(
+      "../supabase/migrations/202609020002_lock_down_report_access.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  assert.match(sql, /DROP POLICY IF EXISTS "Public can read reports"/);
+  assert.match(sql, /REVOKE ALL ON TABLE public\.reports FROM anon/);
+  assert.doesNotMatch(sql, /USING\s*\(\s*true\s*\)/i);
+  assert.doesNotMatch(sql, /WITH CHECK\s*\(\s*true\s*\)/i);
+});
+
+test("history API scopes its query to the authenticated user", () => {
+  const source = readFileSync(
+    new URL("../app/api/reports/route.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /\.eq\("user_id", user\.id\)/);
+  assert.doesNotMatch(source, /seo_issues|fix_plans|anonymous_token_hash/);
+});
+
+test("active browser pages contain no direct reports-table reads", () => {
+  const browserFiles = [
+    "../app/page.tsx",
+    "../app/reports/page.tsx",
+    "../app/report/[id]/page.tsx",
+    "../app/content/[slug]/AuditUrlForm.tsx",
+  ];
+  for (const file of browserFiles) {
+    const source = readFileSync(new URL(file, import.meta.url), "utf8");
+    assert.doesNotMatch(source, /\.from\(["']reports["']\)/);
+    assert.doesNotMatch(source, /\.select\(["']\*["']\)/);
+  }
+});
+
+test("claim route uses a conditional ownership update", () => {
+  const source = readFileSync(
+    new URL("../app/api/reports/[id]/claim/route.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /\.is\("user_id", null\)/);
+  assert.match(source, /\.eq\("anonymous_token_hash", tokenHash\)/);
+  assert.doesNotMatch(source, /searchParams|userId\s*=/);
+});
+
+test("ownership migrations contain no destructive data operations or public grants", () => {
+  for (const name of [
+    "202609020001_add_report_ownership.sql",
+    "202609020002_lock_down_report_access.sql",
+  ]) {
+    const sql = readFileSync(
+      new URL(`../supabase/migrations/${name}`, import.meta.url),
+      "utf8",
+    );
+    assert.doesNotMatch(sql, /DROP\s+(TABLE|COLUMN)/i);
+    assert.doesNotMatch(sql, /DELETE\s+FROM/i);
+    assert.doesNotMatch(sql, /UPDATE\s+public\.reports/i);
+    assert.doesNotMatch(sql, /GRANT\s+/i);
+    assert.doesNotMatch(sql, /USING\s*\(\s*true\s*\)/i);
+    assert.doesNotMatch(sql, /WITH CHECK\s*\(\s*true\s*\)/i);
+  }
 });
