@@ -116,8 +116,10 @@ export default function ReportDetail() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const localAdminKey = window.localStorage.getItem("admin_key");
-      setIsAdmin(Boolean(localAdminKey));
+      void authenticatedFetch("/api/auth/me")
+        .then((response) => (response.ok ? response.json() : null))
+        .then((data) => setIsAdmin(Boolean(data?.isAdmin)))
+        .catch(() => setIsAdmin(false));
     }, 0);
 
     return () => window.clearTimeout(timer);
@@ -187,24 +189,15 @@ export default function ReportDetail() {
   }
 
   async function handleDeleteReport() {
-    const localAdminKey = window.localStorage.getItem("admin_key");
-    if (!localAdminKey) {
-      toast.error("Admin key missing.");
-      return;
-    }
     if (!reportId) return;
     if (!window.confirm("Delete this report permanently?")) return;
 
     try {
       setDeleting(true);
-      const response = await fetch(
-        `${apiUrl}/api/report/${encodeURIComponent(reportId)}`,
+      const response = await authenticatedFetch(
+        `/api/admin/reports/${encodeURIComponent(reportId)}`,
         {
           method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            "x-admin-key": localAdminKey,
-          },
         },
       );
       const result = await parseJsonSafe(response);

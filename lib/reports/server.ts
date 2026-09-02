@@ -11,6 +11,7 @@ import {
   ANONYMOUS_REPORT_COOKIE,
   hashAnonymousReportToken,
 } from "./anonymousToken";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export class ReportServerConfigurationError extends Error {}
 
@@ -25,6 +26,10 @@ export function createReportServiceClient(): SupabaseClient {
 }
 
 export async function getRequestUser(request: Request): Promise<User | null> {
+  const cookieClient = await createSupabaseServerClient();
+  const { data: cookieData, error: cookieError } = await cookieClient.auth.getUser();
+  if (!cookieError && cookieData.user) return cookieData.user;
+
   const authorization = request.headers.get("authorization") || "";
   if (!authorization.startsWith("Bearer ")) return null;
 

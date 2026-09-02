@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Globe, Calendar, ArrowRight, Star, Plus, Loader2 } from "lucide-react";
+import { Globe, Calendar, ArrowRight, Star, Plus, Loader2, LogOut } from "lucide-react";
 import Link from "next/link";
 import { authenticatedFetch } from "@/lib/authFetch";
 import { useTranslation } from "@/lib/i18n";
@@ -20,6 +20,11 @@ export default function ReportsList() {
   const [loading, setLoading] = useState(true);
   const [authRequired, setAuthRequired] = useState(false);
   const { t, language, setLanguage } = useTranslation();
+
+  async function handleLogout() {
+    await fetch("/auth/signout", { method: "POST" });
+    window.location.href = "/";
+  }
 
   useEffect(() => {
     async function fetchReports() {
@@ -96,6 +101,14 @@ export default function ReportsList() {
               <Plus className="w-4 h-4" />
               {t.reports.newAnalysis}
             </Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              title="Sign out"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#1F2937] text-[#9CA3AF] transition-colors hover:border-[#3A8DFF] hover:text-white"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </nav>

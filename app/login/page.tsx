@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Globe, ArrowLeft, Loader2, Mail, Lock } from "lucide-react";
+import { Globe, ArrowLeft, Loader2, Mail } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { toast } from "sonner";
 import { supabase, authProviders } from "@/lib/auth";
@@ -14,25 +14,35 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
+  const [linkSent, setLinkSent] = useState(false);
   const { t, language, setLanguage } = useTranslation();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const getReturnPath = () => {
+    const value = new URLSearchParams(window.location.search).get("next");
+    return value && value.startsWith("/") && !value.startsWith("//")
+      ? value
+      : "/reports";
+  };
+
+  const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const next = getReturnPath();
+      const { error } = await supabase.auth.signInWithOtp({
         email,
-        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        },
       });
 
       if (error) throw error;
 
-      toast.success("Login successful!");
-      window.location.href = "/reports";
+      setLinkSent(true);
+      toast.success("Check your email for a secure sign-in link.");
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, "Login failed"));
     } finally {
@@ -40,20 +50,22 @@ export default function LoginPage() {
     }
   };
 
-  const handleOAuthLogin = async (provider: "google" | "azure") => {
-    setOauthLoading(provider);
+  const handleOAuthLogin = async (
+    providerId: "google" | "microsoft",
+    provider: "google" | "azure",
+  ) => {
+    setOauthLoading(providerId);
     
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(getReturnPath())}`,
         },
       });
 
       if (error) throw error;
 
-      // OAuth 会自动重定向，这里不需要手动处理
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, `${provider} login failed`));
       setOauthLoading(null);
@@ -93,7 +105,10 @@ export default function LoginPage() {
             {authProviders.map((provider) => (
   <button
     key={provider.id}
-    onClick={() => handleOAuthLogin(provider.id === 'microsoft' ? 'azure' : 'google')}
+    onClick={() => handleOAuthLogin(
+      provider.id as "google" | "microsoft",
+      provider.id === 'microsoft' ? 'azure' : 'google',
+    )}
     disabled={oauthLoading !== null}
     className={`w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl font-medium transition-all border ${
       provider.bgColor
@@ -101,9 +116,7 @@ export default function LoginPage() {
   >
     {oauthLoading === provider.id ? (
       <Loader2 className="w-5 h-5 animate-spin" />
-    ) : (
-      <span className="text-xl">{provider.icon}</span>
-    )}
+    ) : null}
     <span>
       {oauthLoading === provider.id 
         ? t.common.loading 
@@ -124,8 +137,8 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Email/Password Form */}
-          <form onSubmit={handleLogin} className="space-y-6">
+          {/* Passwordless email sign-in */}
+          <form onSubmit={handleMagicLink} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-white mb-2">
                 {t.auth.email}
@@ -143,33 +156,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-white mb-2">
-                {t.auth.password}
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280]" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-[#0B0F1A] border border-[#1F2937] rounded-xl pl-10 pr-4 py-3 outline-none focus:border-[#3A8DFF] focus:ring-2 focus:ring-[#3A8DFF]/20 text-white placeholder-[#6B7280] transition-all"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-[#9CA3AF] cursor-pointer">
-                <input type="checkbox" className="rounded border-[#1F2937]" />
-                <span>Remember me</span>
-              </label>
-              <Link href="/forgot-password" className="text-[#3A8DFF] hover:underline">
-                {t.auth.forgotPassword}
-              </Link>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -181,18 +167,15 @@ export default function LoginPage() {
                   {t.common.loading}
                 </>
               ) : (
-                t.auth.loginButton
+                linkSent ? "Send Link Again" : "Email Me a Magic Link"
               )}
             </button>
+            {linkSent && (
+              <p className="text-center text-sm text-[#00C2A8]">
+                The sign-in link has been sent. You can close this page after opening it.
+              </p>
+            )}
           </form>
-
-          {/* Sign Up Link */}
-          <div className="mt-6 text-center text-sm text-[#9CA3AF]">
-            {t.auth.noAccount}{" "}
-            <Link href="/signup" className="text-[#3A8DFF] font-semibold hover:underline">
-              {t.auth.signUp}
-            </Link>
-          </div>
         </div>
 
         {/* Language Switcher */}

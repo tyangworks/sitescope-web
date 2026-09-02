@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { getReportAccessLevel } from "@/lib/reports/access";
+import { isAdminUser } from "@/lib/auth/admin";
 import { projectAuthorizedReport } from "@/lib/reports/projections";
 import {
   createReportServiceClient,
@@ -30,10 +31,12 @@ export async function GET(
     if (!data) return reportError(404, "REPORT_NOT_FOUND", "Report not found.");
 
     const user = await getRequestUser(request);
-    const accessLevel = getReportAccessLevel(data as RawReportDatabaseRow, {
-      userId: user?.id || null,
-      anonymousTokenHash: getAnonymousTokenHash(request),
-    });
+    const accessLevel = isAdminUser(user)
+      ? "pro"
+      : getReportAccessLevel(data as RawReportDatabaseRow, {
+          userId: user?.id || null,
+          anonymousTokenHash: getAnonymousTokenHash(request),
+        });
 
     if (accessLevel === "denied") {
       return reportError(404, "REPORT_NOT_FOUND", "Report not found.");
