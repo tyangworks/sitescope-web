@@ -251,11 +251,15 @@ test("ownership migrations contain no destructive data operations or public gran
   }
 });
 
-test("analysis BFF forwards client IP without forwarding authority headers", () => {
+test("analysis BFF grants rate-limit bypass only after server-side admin verification", () => {
   const source = readFileSync(
     new URL("../app/api/analyze/route.ts", import.meta.url),
     "utf8",
   );
   assert.match(source, /request\.headers\.get\("x-forwarded-for"\)/);
-  assert.doesNotMatch(source, /x-admin-key|isPaid|access=pro/);
+  assert.match(source, /isAdminUser\(user\)/);
+  assert.match(source, /process\.env\.ANALYSIS_ADMIN_KEY/);
+  assert.match(source, /upstreamHeaders\["x-admin-key"\]/);
+  assert.doesNotMatch(source, /request\.headers\.get\("x-admin-key"\)/);
+  assert.doesNotMatch(source, /isPaid|access=pro/);
 });

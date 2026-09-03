@@ -20,6 +20,7 @@ import {
   FileText,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
 import { authenticatedFetch } from "@/lib/authFetch";
 import { useTranslation } from "@/lib/i18n";
@@ -434,9 +435,11 @@ export default function ReportDetail() {
               {!imageLoaded && (
                 <div className="absolute inset-0 animate-pulse bg-[#111827]" />
               )}
-              <img
+              <Image
                 src={report.screenshot_url}
                 alt="Site preview"
+                fill
+                sizes="(min-width: 1024px) 66vw, 100vw"
                 className="w-full h-full object-contain"
                 onLoad={() => setImageLoaded(true)}
               />

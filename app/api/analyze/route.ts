@@ -11,6 +11,7 @@ import {
   getRequestUser,
   reportError,
 } from "@/lib/reports/server";
+import { isAdminUser } from "@/lib/auth/admin";
 
 export const runtime = "nodejs";
 
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
   ).replace(/\/+$/, "");
 
   try {
+    const user = await getRequestUser(request);
     const forwardedFor = request.headers.get("x-forwarded-for")
       ?.split(",")[0]
       .trim();
@@ -59,6 +61,9 @@ export async function POST(request: NextRequest) {
       "Content-Type": "application/json",
     };
     if (forwardedFor) upstreamHeaders["x-forwarded-for"] = forwardedFor;
+    if (isAdminUser(user) && process.env.ANALYSIS_ADMIN_KEY) {
+      upstreamHeaders["x-admin-key"] = process.env.ANALYSIS_ADMIN_KEY;
+    }
 
     const upstream = await fetch(`${analysisApiUrl}/api/analyze`, {
       method: "POST",
@@ -80,7 +85,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await getRequestUser(request);
     const anonymousToken = user ? null : createAnonymousReportToken();
     const ownership = {
       user_id: user?.id || null,

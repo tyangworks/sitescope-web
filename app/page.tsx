@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Loader2, AlertCircle, Globe, MousePointer2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { authenticatedFetch } from "@/lib/authFetch";
 import { normalizeUrlInput } from "@/lib/normalizeUrl";
@@ -335,9 +336,11 @@ export default function Home() {
                   key={report.id}
                   className="group bg-[#111827] rounded-2xl p-3 border border-gray-800 hover:border-gray-600 transition-all"
                 >
-                  <div className="aspect-video rounded-xl overflow-hidden mb-3 bg-gray-900">
-                    <img
+                  <div className="relative aspect-video rounded-xl overflow-hidden mb-3 bg-gray-900">
+                    <Image
                       src={report.screenshot_url}
+                      fill
+                      sizes="(min-width: 768px) 33vw, 100vw"
                       className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all"
                       alt="audit"
                     />

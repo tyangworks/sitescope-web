@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Globe, Calendar, ArrowRight, Star, Plus, Loader2, LogOut } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { authenticatedFetch } from "@/lib/authFetch";
 import { useTranslation } from "@/lib/i18n";
 
@@ -145,9 +146,11 @@ export default function ReportsList() {
               >
                 {/* Screenshot */}
                 <div className="aspect-video bg-[#0B0F1A] relative overflow-hidden">
-                  <img
+                  <Image
                     src={report.screenshot_url}
                     alt="Site preview"
+                    fill
+                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute top-3 right-3 bg-[#111827]/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-lg flex items-center gap-2 border border-[#1F2937]">

@@ -44,7 +44,8 @@ routes remain in place until callers are migrated and tested.
 5. Crawler normalizes the URL again.
 6. Crawler checks Supabase for a report with the same normalized URL created
    within the previous 24 hours.
-7. On a cache miss, Crawler checks the per-IP analysis-attempt limit.
+7. On a cache miss, Crawler checks the configurable per-IP successful-analysis
+   limit (three successful audits per rolling 24 hours by default).
 8. Playwright opens the page and captures a JPEG screenshot.
 9. The screenshot is uploaded to the public Supabase `screenshots` bucket.
 10. A limited page-data excerpt is sent to Gemini.
@@ -86,8 +87,10 @@ Current JSON body:
 | Other fields | unknown | No | Ignored by the current implementation. |
 
 An optional `x-admin-key` request header is recognized by Crawler. A valid
-value bypasses the per-IP free-analysis limit. The current Web audit forms do
-not send this header.
+value bypasses the per-IP free-analysis limit. The browser cannot supply this
+authority through the Web BFF. Web adds the server-only header only after a
+verified Supabase session matches `ADMIN_EMAIL` and `ANALYSIS_ADMIN_KEY` is
+configured.
 
 ### URL Normalization
 
@@ -161,6 +164,11 @@ Crawler callers from bypassing report authorization.
 - Cache lifetime: 24 hours.
 - Newest matching row is selected.
 - Cache lookup occurs before per-IP rate-limit enforcement.
+- Only `completed` analysis attempts consume the free limit; failed attempts do
+  not. Requests without a usable client IP are not assigned to a shared
+  `unknown` bucket.
+- `FREE_ANALYSIS_DAILY_LIMIT` and `FREE_ANALYSIS_WINDOW_HOURS` may override the
+  default limit and rolling window on Crawler.
 - A cache hit returns immediately without crawling, AI, or a new attempt row.
 - The cache response includes only ID and screenshot metadata; Web clones the
   persisted content into a separately owned unpaid row.
@@ -180,7 +188,7 @@ machine error code.
 | --- | --- | --- |
 | `400` | Missing/empty URL after Crawler normalization. | Correct the request; do not retry unchanged. |
 | `403` | Origin rejected by the CORS allowlist. | Correct the configured origin; do not retry unchanged. |
-| `429` | A non-admin IP has an analysis-attempt row within 24 hours. | Retry after the 24-hour window or use an existing cached report. |
+| `429` | A non-admin IP has reached the configured number of successful analyses in the rolling window. | Retry later or use an existing cached report. |
 | `500` | Crawl, storage, database, or other analysis failure. | Potentially transient, but current failed-attempt recording may cause the next request to return 429. |
 | non-JSON proxy/platform error | Route or deployment mismatch. | Web currently assumes JSON for `/api/analyze`; inspect deployment/version first. |
 
