@@ -355,14 +355,14 @@ export default function ReportDetail() {
       <div className="max-w-7xl mx-auto px-6 mt-10">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
-          <div className="flex-1">
+          <div className="w-full min-w-0 flex-1">
             <div className="flex items-center gap-2 text-[#3A8DFF] mb-3">
               <Globe className="w-5 h-5" />
               <span className="text-sm font-bold uppercase tracking-wider">
                 {t.report.siteReport}
               </span>
             </div>
-            <h1 className="text-3xl lg:text-4xl font-black text-white mb-2 leading-tight">
+            <h1 className="text-3xl lg:text-4xl font-black text-white mb-2 leading-tight [overflow-wrap:anywhere]">
               {report.url}
             </h1>
             <p className="text-[#9CA3AF]">
