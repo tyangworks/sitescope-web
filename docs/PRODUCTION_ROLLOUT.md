@@ -1,6 +1,7 @@
 # Production Rollout Record
 
-Status: in progress. Migration 1 is applied. Migration 2 has not been executed.
+Status: Web and crawler rollout complete. Migration 1 is applied. Migration 2
+has not been executed and is not yet ready for approval.
 
 ## Crawler Release
 
@@ -46,10 +47,23 @@ the new Web BFF passes production acceptance.
 
 ## Web Release
 
-The stabilization branch is `stabilize/sitescope`. The release must use an
-explicit clean commit and must not be merged to `main` as part of this rollout.
-Preview and production deployment identifiers, URLs, and rollback target are
-recorded after Vercel supplies them.
+The stabilization branch is `stabilize/sitescope`; it was not merged to `main`.
+The final Web release is commit
+`9873194ab078a4ec83e371c676c8118bf49757ba`.
+
+- Validated Preview deployment: `Hfg69VcGoZ4ihdZuehUxQbV8YkPw`
+- Preview URL:
+  `https://sitescope-8l4oeukqi-tyangworks-2587s-projects.vercel.app`
+- Active production deployment: `1MrkA2TTdWe3KgvNfSgDLWGabc5d`
+- Production deployment URL:
+  `https://sitescope-l1gj03inl-tyangworks-2587s-projects.vercel.app`
+- Production domain: `https://www.sitescope.fyi`
+- Immediate rollback deployment: `HaZrZLfYjRw5vj3etBGfPqyXSBgQ`
+- Immediate rollback commit:
+  `0314cf497653df5272ee5eea3cf84978684a293e`
+- Pre-stabilization rollback deployment: `7cfBjy5QzsC2JosYdHQpxGyihL4x`
+- Pre-stabilization rollback commit:
+  `44664d66da0cedd43698127cad09a478b80e018d`
 
 The correct Vercel project is `sitescope-web`. A second project named
 `sitescope` is connected to the same repository but its stabilization Preview
@@ -74,8 +88,34 @@ than the crawler's duplicated business endpoints.
 
 The previous Stripe test Price was CAD 9.00. A replacement one-time USD 9.00
 test Price was created under the existing test product, and `STRIPE_PRICE_ID`
-was updated for Production and Preview. No payment was submitted. A deployment
-created after this environment update is required before final validation.
+was updated for Production and Preview. Production successfully opened Stripe
+Checkout Sandbox at USD 9.00. No payment was submitted.
+
+## Production Acceptance
+
+Passed on 2026-09-03:
+
+- `www.sitescope.fyi` resolves to the final production deployment.
+- Homepage, content, services, contact, Pro Audit, crawler health, and crawler
+  version endpoints return HTTP 200.
+- Google OAuth returns to `/reports`; the session survives refresh.
+- The configured admin sees the localized Delete Report control after the
+  server identity check; an anonymous session does not.
+- Anonymous report rendering contains a locked Pro placeholder and no rendered
+  Pro fix-plan or code-snippet payload.
+- Stripe Checkout uses a test session and displays USD 9.00.
+- The report page has no horizontal overflow at a 390 px viewport.
+- Browser console checks found no warnings or errors in the tested flows.
+
+Pending before migration 2 can be called ready:
+
+- A fresh audit and anonymous-to-authenticated claim could not be exercised
+  because the production daily free-audit limit had already been reached.
+- An actual admin deletion was not attempted because no disposable production
+  report was available; no production data was deleted.
+- Microsoft OAuth and Magic Link still require controlled manual acceptance.
+- Cross-user report isolation is covered locally but still needs a controlled
+  production account-pair check.
 
 ## Known Operational Risks
 
@@ -84,4 +124,4 @@ created after this environment update is required before final validation.
 - Dependency audits currently report unresolved findings; automated force fixes
   are intentionally excluded from this rollout.
 - Migration 2 remains the step that closes direct database report access and is
-  forbidden until the BFF path passes production acceptance.
+  forbidden until the remaining controlled acceptance checks above pass.
