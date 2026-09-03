@@ -58,6 +58,25 @@ Supabase service-role, Resend/contact, and admin variable names were added to
 the `sitescope-web` project for Production and Preview without exposing values.
 The branch must be redeployed after this environment update.
 
+Supabase Auth URL configuration was corrected on 2026-09-03:
+
+- Site URL: `https://www.sitescope.fyi`
+- Allowed production callbacks: `https://www.sitescope.fyi/**` and
+  `https://sitescope.fyi/**`
+- Allowed Preview callbacks:
+  `https://*-tyangworks-2587s-projects.vercel.app/**`
+- Allowed local callback: `http://localhost:3000/**`
+
+Preview OAuth then returned to `/reports` on the requesting Preview deployment,
+and the authenticated session survived a full refresh. The report and Pro Audit
+pages now call the same-origin Web BFF for checkout and credit redemption rather
+than the crawler's duplicated business endpoints.
+
+The previous Stripe test Price was CAD 9.00. A replacement one-time USD 9.00
+test Price was created under the existing test product, and `STRIPE_PRICE_ID`
+was updated for Production and Preview. No payment was submitted. A deployment
+created after this environment update is required before final validation.
+
 ## Known Operational Risks
 
 - PM2 cold-boot recovery is enabled but not yet proven by an actual reboot.
