@@ -60,12 +60,12 @@ export default function ReportDetail() {
   const fixPlans = report?.access_level === "pro" ? report.fix_plans : [];
 
   const loadingSteps = [
-    { icon: <Globe className="w-5 h-5" />, text: "Fetching site structure" },
-    { icon: <Zap className="w-5 h-5" />, text: "Running performance tests" },
-    { icon: <AlertCircle className="w-5 h-5" />, text: "Checking SEO signals" },
+    { icon: <Globe className="w-5 h-5" />, text: t.report.loadingStructure },
+    { icon: <Zap className="w-5 h-5" />, text: t.report.loadingPerformance },
+    { icon: <AlertCircle className="w-5 h-5" />, text: t.report.loadingSeo },
     {
       icon: <Lightbulb className="w-5 h-5" />,
-      text: "Generating AI insights...",
+      text: t.report.loadingAi,
     },
   ];
 
@@ -190,7 +190,7 @@ export default function ReportDetail() {
 
   async function handleDeleteReport() {
     if (!reportId) return;
-    if (!window.confirm("Delete this report permanently?")) return;
+    if (!window.confirm(t.report.deleteConfirm)) return;
 
     try {
       setDeleting(true);
@@ -202,7 +202,7 @@ export default function ReportDetail() {
       );
       const result = await parseJsonSafe(response);
       if (!response.ok) throw new Error(result.error || "Delete failed");
-      toast.success("Report deleted.");
+      toast.success(t.report.deleteReport);
       window.location.href = "/reports";
     } catch (error: unknown) {
       toast.error(errorMessage(error, "Failed to delete report."));
@@ -221,10 +221,10 @@ export default function ReportDetail() {
           </div>
 
           <h2 className="text-2xl font-bold text-white mb-4">
-            Analyzing Your Website
+            {t.report.analyzing}
           </h2>
           <p className="text-[#9CA3AF] mb-8">
-            Estimated time: 20-30 seconds. Real value takes time.
+            {t.report.estimatedTime}
           </p>
 
           <div className="space-y-4">
@@ -288,17 +288,17 @@ export default function ReportDetail() {
         <div className="text-center">
           <AlertCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
           <h2 className="text-2xl font-bold text-white mb-2">
-            Report Not Found
+            {t.report.notFound}
           </h2>
           <p className="text-[#9CA3AF] mb-6">
-            This report may have been deleted or does not exist.
+            {t.report.notFoundDesc}
           </p>
           <Link
             href="/reports"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl gradient-bg text-white font-semibold hover:opacity-90 transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Reports
+            {t.report.backToReports}
           </Link>
         </div>
       </main>
@@ -312,10 +312,10 @@ export default function ReportDetail() {
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 80) return "Excellent";
-    if (score >= 60) return "Good";
-    if (score >= 40) return "Fair";
-    return "Needs Improvement";
+    if (score >= 80) return t.report.scoreExcellent;
+    if (score >= 60) return t.report.scoreGood;
+    if (score >= 40) return t.report.scoreFair;
+    return t.report.scoreNeedsImprovement;
   };
 
   return (
@@ -328,7 +328,7 @@ export default function ReportDetail() {
             className="flex items-center gap-2 text-[#9CA3AF] hover:text-white transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="font-semibold">Back to Reports</span>
+            <span className="font-semibold">{t.report.backToReports}</span>
           </Link>
           <div className="flex items-center gap-4">
             {isAdmin && (
@@ -338,18 +338,18 @@ export default function ReportDetail() {
                 className="flex items-center gap-2 text-sm font-bold bg-red-500/10 text-red-500 px-4 py-2 rounded-xl hover:bg-red-500/20 disabled:opacity-60 transition-all"
               >
                 <Trash2 className="w-4 h-4" />
-                {deleting ? "Deleting..." : "Delete Report"}
+                {deleting ? t.report.deleting : t.report.deleteReport}
               </button>
             )}
             <button
               onClick={() => {
                 navigator.clipboard.writeText(window.location.href);
-                toast.success("Share link copied to clipboard!");
+                toast.success(t.report.shareCopied);
               }}
               className="flex items-center gap-2 text-sm font-bold bg-[#111827] text-white px-4 py-2 rounded-xl border border-[#1F2937] hover:border-[#3A8DFF] transition-all"
             >
               <Share2 className="w-4 h-4" />
-              Share
+              {t.report.share}
             </button>
           </div>
         </div>
@@ -362,14 +362,14 @@ export default function ReportDetail() {
             <div className="flex items-center gap-2 text-[#3A8DFF] mb-3">
               <Globe className="w-5 h-5" />
               <span className="text-sm font-bold uppercase tracking-wider">
-                Site Report
+                {t.report.siteReport}
               </span>
             </div>
             <h1 className="text-3xl lg:text-4xl font-black text-white mb-2 leading-tight">
               {report.url}
             </h1>
             <p className="text-[#9CA3AF]">
-              Generated on {new Date(report.created_at).toLocaleDateString()}
+              {t.report.generatedOn} {new Date(report.created_at).toLocaleDateString()}
             </p>
           </div>
 
@@ -418,7 +418,7 @@ export default function ReportDetail() {
               </div>
               <div>
                 <div className="text-sm font-bold text-[#6B7280] uppercase mb-1">
-                  Overall Score
+                  {t.report.overallScore}
                 </div>
                 <div
                   className={`text-lg font-bold bg-gradient-to-r ${getScoreColor(report.score)} bg-clip-text text-transparent`}
@@ -448,7 +448,7 @@ export default function ReportDetail() {
 
           <div className="bg-gradient-to-br from-[#3A8DFF] to-[#00C2A8] rounded-2xl p-8 text-white shadow-xl">
             <div className="text-5xl font-black mb-4">{report.score}</div>
-            <h3 className="text-xl font-bold mb-2">综合得分</h3>
+            <h3 className="text-xl font-bold mb-2">{t.report.overallScore}</h3>
             <p className="text-white/90 text-sm leading-relaxed">
               {report.summary}
             </p>
@@ -463,9 +463,9 @@ export default function ReportDetail() {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white">
-                核心问题 (免费预览)
+                {t.report.coreIssues}
               </h2>
-              <p className="text-[#9CA3AF] text-sm">前3个最关键的问题</p>
+              <p className="text-[#9CA3AF] text-sm">{t.report.coreIssuesSubtitle}</p>
             </div>
           </div>
 
@@ -491,12 +491,12 @@ export default function ReportDetail() {
                 </div>
                 <div className="space-y-2">
                   <p className="text-sm text-[#9CA3AF]">
-                    <span className="text-green-400 font-semibold">影响:</span>{" "}
+                    <span className="text-green-400 font-semibold">{t.report.impact}</span>{" "}
                     {item.impact}
                   </p>
                   <p className="text-sm text-[#9CA3AF]">
                     <span className="text-[#3A8DFF] font-semibold">
-                      建议修复:
+                      {t.report.recommendedFix}
                     </span>{" "}
                     {item.fix}
                   </p>
@@ -513,16 +513,16 @@ export default function ReportDetail() {
                 <Lock className="h-5 w-5 text-[#3A8DFF]" />
               </div>
               <div className="flex-1">
-                <h2 className="mb-2 text-xl font-bold text-white">Save and unlock your complete Free report</h2>
+                <h2 className="mb-2 text-xl font-bold text-white">{t.report.saveFreeTitle}</h2>
                 <p className="mb-5 text-sm leading-relaxed text-[#9CA3AF]">
-                  Sign in to securely claim this audit, view every Free finding, and keep it in your private report history.
+                  {t.report.saveFreeDesc}
                 </p>
                 <Link
                   href={`/login?next=${encodeURIComponent(`/report/${reportId}`)}`}
                   className="inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold text-white gradient-bg"
                 >
                   <FileText className="h-5 w-5" />
-                  Sign In to Unlock Free Report
+                  {t.report.signInToUnlock}
                 </Link>
               </div>
             </div>
@@ -537,9 +537,9 @@ export default function ReportDetail() {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white">
-                修复计划 (Pro专享)
+                {t.report.fixPlans}
               </h2>
-              <p className="text-[#9CA3AF] text-sm">详细的修复步骤和代码片段</p>
+              <p className="text-[#9CA3AF] text-sm">{t.report.fixPlansSubtitle}</p>
             </div>
           </div>
 
@@ -549,39 +549,38 @@ export default function ReportDetail() {
                 <div className="flex items-center gap-3 mb-4">
                   <Lock className="w-6 h-6 text-[#00C2A8]" />
                   <h3 className="text-xl font-bold text-white">
-                    Unlock Pro Audit
+                    {t.report.upgradePro}
                   </h3>
                 </div>
                 <p className="text-sm text-[#9CA3AF] mb-5 leading-relaxed">
-                  Unlock the full audit report, prioritized fix plan, and
-                  implementation-ready insights.
+                  {t.report.proLockedDesc}
                 </p>
                 <div className="mb-5 flex items-end gap-3">
                   <div className="text-4xl font-black text-white">$9</div>
                   <div className="pb-1 text-sm font-bold text-[#6B7280]">
                     <span className="line-through">$29</span>
-                    <span className="ml-2 text-[#00C2A8]">one-time</span>
+                    <span className="ml-2 text-[#00C2A8]">{t.report.oneTime}</span>
                   </div>
                 </div>
                 <div className="bg-[#0B0F1A] rounded-xl p-4 mb-6 border border-[#1F2937]">
                   <div className="flex items-center gap-2 mb-2">
                     <CheckCircle2 className="w-4 h-4 text-[#00C2A8]" />
-                    <span className="text-sm text-white">Detailed fix steps</span>
+                    <span className="text-sm text-white">{t.report.stepByStep}</span>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
                     <CheckCircle2 className="w-4 h-4 text-[#00C2A8]" />
-                    <span className="text-sm text-white">Ready-to-use code snippets</span>
+                    <span className="text-sm text-white">{t.report.codeSnippets}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-[#00C2A8]" />
-                    <span className="text-sm text-white">Priority-ranked action plan</span>
+                    <span className="text-sm text-white">{t.report.priorityPlan}</span>
                   </div>
                 </div>
                 <input
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder={t.report.enterEmail}
                   className="w-full bg-[#0B0F1A] border border-[#1F2937] rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#3A8DFF] focus:ring-2 focus:ring-[#3A8DFF]/20 text-white placeholder-[#6B7280] transition-all"
                 />
                 <button
@@ -592,12 +591,12 @@ export default function ReportDetail() {
                   {unlocking ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      处理中...
+                      {t.report.processing}
                     </>
                   ) : (
                     <>
                       <Zap className="w-5 h-5" />
-                      Unlock Pro Audit
+                      {t.report.upgradePro}
                     </>
                   )}
                 </button>
@@ -637,7 +636,7 @@ export default function ReportDetail() {
                               : "bg-blue-500/20 text-blue-400"
                         }`}
                       >
-                        {plan.priority.toUpperCase()} PRIORITY
+                        {plan.priority.toUpperCase()} {t.report.priority.toUpperCase()}
                       </span>
                     </div>
                   </div>
@@ -647,7 +646,7 @@ export default function ReportDetail() {
                       <div className="flex items-center gap-2 mb-2">
                         <Code className="w-4 h-4 text-[#3A8DFF]" />
                         <span className="text-sm font-semibold text-[#3A8DFF]">
-                          代码片段
+                          {t.report.codeSnippet}
                         </span>
                       </div>
                       <pre className="bg-[#0B0F1A] rounded-xl p-4 overflow-x-auto border border-[#1F2937]">
@@ -672,8 +671,8 @@ export default function ReportDetail() {
                   <Lightbulb className="w-5 h-5 text-[#00C2A8]" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-white">内容建议</h2>
-                  <p className="text-[#9CA3AF] text-sm">提升用户体验的建议</p>
+                  <h2 className="text-2xl font-bold text-white">{t.report.contentSuggestions}</h2>
+                  <p className="text-[#9CA3AF] text-sm">{t.report.contentSuggestionsSubtitle}</p>
                 </div>
               </div>
 

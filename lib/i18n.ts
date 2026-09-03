@@ -75,10 +75,32 @@ export interface Translations {
   report: {
     analyzing: string;
     estimatedTime: string;
+    loadingStructure: string;
+    loadingPerformance: string;
+    loadingSeo: string;
+    loadingAi: string;
     notFound: string;
+    notFoundDesc: string;
+    backToReports: string;
+    deleteReport: string;
+    deleting: string;
+    deleteConfirm: string;
+    share: string;
+    shareCopied: string;
+    siteReport: string;
+    generatedOn: string;
     overallScore: string;
+    scoreExcellent: string;
+    scoreGood: string;
+    scoreFair: string;
+    scoreNeedsImprovement: string;
     coreIssues: string;
     coreIssuesSubtitle: string;
+    impact: string;
+    recommendedFix: string;
+    saveFreeTitle: string;
+    saveFreeDesc: string;
+    signInToUnlock: string;
     moreIssues: string;
     moreIssuesSubtitle: string;
     fixPlans: string;
@@ -92,6 +114,9 @@ export interface Translations {
     unlockFullDesc: string;
     upgradePro: string;
     upgradeProDesc: string;
+    proLockedDesc: string;
+    oneTime: string;
+    priorityPlan: string;
     stepByStep: string;
     codeSnippets: string;
     priority: string;
@@ -204,10 +229,33 @@ export const translations: Record<Language, Translations> = {
     report: {
       analyzing: "Analyzing Your Website",
       estimatedTime: "Estimated time: 20-30 seconds. Real value takes time.",
+      loadingStructure: "Fetching site structure",
+      loadingPerformance: "Running performance tests",
+      loadingSeo: "Checking SEO signals",
+      loadingAi: "Generating AI insights...",
       notFound: "Report Not Found",
+      notFoundDesc: "This report may have been deleted or does not exist.",
+      backToReports: "Back to Reports",
+      deleteReport: "Delete Report",
+      deleting: "Deleting...",
+      deleteConfirm: "Delete this report permanently?",
+      share: "Share",
+      shareCopied: "Share link copied to clipboard!",
+      siteReport: "Site Report",
+      generatedOn: "Generated on",
       overallScore: "Overall Score",
+      scoreExcellent: "Excellent",
+      scoreGood: "Good",
+      scoreFair: "Fair",
+      scoreNeedsImprovement: "Needs Improvement",
       coreIssues: "Core Issues (Free Preview)",
       coreIssuesSubtitle: "Top 3 most critical issues",
+      impact: "Impact:",
+      recommendedFix: "Recommended fix:",
+      saveFreeTitle: "Save and unlock your complete Free report",
+      saveFreeDesc:
+        "Sign in to securely claim this audit, view every Free finding, and keep it in your private report history.",
+      signInToUnlock: "Sign In to Unlock Free Report",
       moreIssues: "More Issues (Email Unlock)",
       moreIssuesSubtitle: "Enter your email to unlock the complete issue list",
       fixPlans: "Fix Plans (Pro Exclusive)",
@@ -224,6 +272,10 @@ export const translations: Record<Language, Translations> = {
       upgradePro: "Upgrade to Pro",
       upgradeProDesc:
         "Unlock detailed fix plans and code snippets with complete solutions.",
+      proLockedDesc:
+        "Unlock the full audit report, prioritized fix plan, and implementation-ready insights.",
+      oneTime: "one-time",
+      priorityPlan: "Priority-ranked action plan",
       stepByStep: "Detailed fix steps",
       codeSnippets: "Ready-to-use code snippets",
       priority: "Priority",
@@ -335,10 +387,33 @@ export const translations: Record<Language, Translations> = {
     report: {
       analyzing: "正在分析你的网站",
       estimatedTime: "预计时间：20-30秒。真正的价值需要时间。",
+      loadingStructure: "正在获取网站结构",
+      loadingPerformance: "正在运行性能测试",
+      loadingSeo: "正在检查 SEO 信号",
+      loadingAi: "正在生成 AI 洞察...",
       notFound: "未找到报告",
+      notFoundDesc: "该报告可能已被删除或不存在。",
+      backToReports: "返回报告列表",
+      deleteReport: "删除报告",
+      deleting: "正在删除...",
+      deleteConfirm: "确定要永久删除这份报告吗？",
+      share: "分享",
+      shareCopied: "报告链接已复制！",
+      siteReport: "网站报告",
+      generatedOn: "生成日期",
       overallScore: "综合得分",
+      scoreExcellent: "优秀",
+      scoreGood: "良好",
+      scoreFair: "一般",
+      scoreNeedsImprovement: "需要改进",
       coreIssues: "核心问题（免费预览）",
       coreIssuesSubtitle: "前3个最关键的问题",
+      impact: "影响：",
+      recommendedFix: "修复建议：",
+      saveFreeTitle: "保存并解锁完整免费报告",
+      saveFreeDesc:
+        "登录后可安全认领本次审计、查看全部免费内容，并将报告保存到您的个人历史记录。",
+      signInToUnlock: "登录并解锁免费报告",
       moreIssues: "更多问题（邮箱解锁）",
       moreIssuesSubtitle: "输入邮箱解锁完整问题列表",
       fixPlans: "修复计划（Pro专享）",
@@ -353,6 +428,9 @@ export const translations: Record<Language, Translations> = {
       unlockFullDesc: "输入您的邮箱地址即可免费解锁所有SEO问题的详细分析。",
       upgradePro: "升级到Pro",
       upgradeProDesc: "解锁详细的修复计划和代码片段，获得完整的解决方案。",
+      proLockedDesc: "解锁完整审计、按优先级排列的修复计划和可直接实施的建议。",
+      oneTime: "一次性付款",
+      priorityPlan: "按优先级排列的行动计划",
       stepByStep: "详细的修复步骤",
       codeSnippets: "即用型代码片段",
       priority: "优先级",
