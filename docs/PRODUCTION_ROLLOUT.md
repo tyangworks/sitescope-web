@@ -1,6 +1,6 @@
 # Production Rollout Record
 
-Status: in progress. Migration 2 has not been executed.
+Status: in progress. Migration 1 is applied. Migration 2 has not been executed.
 
 ## Crawler Release
 
@@ -34,12 +34,29 @@ separate maintenance-window task; no reboot was performed during this rollout.
 Migration 1 SHA-256:
 `76ED845D9CF00ED83C3EAAF5A58683DDDC5596217C70A5715A8DCCE3C0EA724E`
 
+Migration 1 was applied to the production `sitescope` Supabase project on
+2026-09-02 after the operator explicitly accepted proceeding without a platform
+backup. The Free plan reported no backups. Preflight recorded 29 report rows,
+the existing broad public policies, and direct `anon`/`authenticated` table
+grants. Postflight confirmed the same 29 rows, nullable `user_id` and
+`anonymous_token_hash` columns, and unchanged legacy access policies.
+
+Migration 2 remains unapplied and requires a separate explicit approval after
+the new Web BFF passes production acceptance.
+
 ## Web Release
 
 The stabilization branch is `stabilize/sitescope`. The release must use an
 explicit clean commit and must not be merged to `main` as part of this rollout.
 Preview and production deployment identifiers, URLs, and rollback target are
 recorded after Vercel supplies them.
+
+The correct Vercel project is `sitescope-web`. A second project named
+`sitescope` is connected to the same repository but its stabilization Preview
+builds fail; it is not part of this rollout. Required server-only billing,
+Supabase service-role, Resend/contact, and admin variable names were added to
+the `sitescope-web` project for Production and Preview without exposing values.
+The branch must be redeployed after this environment update.
 
 ## Known Operational Risks
 
