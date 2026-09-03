@@ -21,9 +21,6 @@ async function parseJsonSafe(response: Response) {
 export default function ProAuditPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const apiUrl = (
-    process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi"
-  ).replace(/\/+$/, "");
 
   async function handleCheckout(event: React.FormEvent) {
     event.preventDefault();
@@ -36,7 +33,7 @@ export default function ProAuditPage() {
 
     try {
       setLoading(true);
-      const response = await fetch(`${apiUrl}/api/create-checkout-session`, {
+      const response = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

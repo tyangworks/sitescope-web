@@ -366,8 +366,8 @@ replacement is tested.
 | --- | --- | --- | --- |
 | Contact persistence | `/contact` calls Next `POST /api/contact`. | `POST /api/contact` exists; no current Web caller found. | Crawler duplicate candidate |
 | Resend notification | Next contact route calls Resend. | Crawler contact route also calls Resend. | Duplicated |
-| Checkout creation | Next `POST /api/create-checkout-session` exists but no current caller was found. | Report and Pro pages call Crawler `POST /api/create-checkout-session`. | Active ownership conflicts with target |
-| Credit redemption | Next `POST /api/redeem-pro-credit` exists but no current caller was found. | Report page calls Crawler `POST /api/redeem-pro-credit`. | Active ownership conflicts with target |
+| Checkout creation | Next `POST /api/create-checkout-session` is the canonical caller target. | Report and Pro pages call the same-origin Web BFF route. | Compatible with target ownership |
+| Credit redemption | Next `POST /api/redeem-pro-credit` is the canonical caller target. | Report page calls the same-origin Web BFF route. | Compatible with target ownership; atomic redemption remains Phase 7 work |
 | Checkout finalization | Success page calls Crawler `GET /api/finalize-checkout-session`. | Crawler finalizes Stripe session and entitlement. | Must migrate to Web/BFF |
 | Stripe webhook | No Next webhook route exists. | Stripe is expected to call Crawler `POST /api/webhook`. | Must migrate before deletion |
 | Report payment status | No current Web caller found. | Crawler `GET /api/report-payment-status`. | Unused candidate; verify external callers |

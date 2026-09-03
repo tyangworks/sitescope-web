@@ -50,9 +50,6 @@ export default function ReportDetail() {
   const [isAdmin, setIsAdmin] = useState(false);
   const loadingStep = 0;
 
-  const apiUrl = (
-    process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi"
-  ).replace(/\/+$/, "");
   const reportId = String(params.id || "");
   const isPro = report?.access_level === "pro";
   const isAnonymous = report?.access_level === "anonymous";
@@ -139,7 +136,7 @@ export default function ReportDetail() {
     try {
       setUnlocking(true);
       try {
-        const redeemResponse = await fetch(`${apiUrl}/api/redeem-pro-credit`, {
+        const redeemResponse = await authenticatedFetch("/api/redeem-pro-credit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -163,7 +160,7 @@ export default function ReportDetail() {
         toast("Could not check an existing Pro credit. Opening checkout instead.");
       }
 
-      const response = await fetch(`${apiUrl}/api/create-checkout-session`, {
+      const response = await authenticatedFetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
