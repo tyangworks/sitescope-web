@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircle, Loader2, MousePointer2 } from "lucide-react";
 import { authenticatedFetch } from "@/lib/authFetch";
 import { normalizeUrlInput } from "@/lib/normalizeUrl";
+import { useTranslation } from "@/lib/i18n";
 
 function errorMessage(error: unknown, fallback: string) {
   if (error instanceof Error && error.message) return error.message;
@@ -21,6 +22,7 @@ export default function AuditUrlForm({
   compact = false,
 }: AuditUrlFormProps) {
   const router = useRouter();
+  const { language } = useTranslation();
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -43,13 +45,13 @@ export default function AuditUrlForm({
       const response = await authenticatedFetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: normalized.url }),
+        body: JSON.stringify({ url: normalized.url, language }),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Audit failed");
+      if (!response.ok) throw new Error(result.error || (language === "zh" ? "审计启动失败" : "Audit failed"));
       router.push(`/report/${result.id}`);
     } catch (error: unknown) {
-      setError(errorMessage(error, "Could not start the audit. Please try again."));
+      setError(errorMessage(error, language === "zh" ? "无法启动审计，请重试。" : "Could not start the audit. Please try again."));
       setLoading(false);
     }
   }
@@ -76,7 +78,7 @@ export default function AuditUrlForm({
               setUrl(event.target.value);
               if (error) setError("");
             }}
-            placeholder="Enter your website, e.g. example.com"
+            placeholder={language === "zh" ? "输入网站，例如 example.com" : "Enter your website, e.g. example.com"}
             className="w-full bg-transparent py-3 text-base font-semibold text-white outline-none placeholder:text-gray-500 md:text-lg"
             disabled={loading}
             autoCapitalize="none"
@@ -94,7 +96,7 @@ export default function AuditUrlForm({
         </button>
       </form>
       <p className="mt-3 text-center text-xs font-semibold text-gray-500">
-        No signup required. Results in minutes.
+        {language === "zh" ? "无需注册，几分钟内获得结果。" : "No signup required. Results in minutes."}
       </p>
       {error && (
         <p className="mt-3 flex items-center justify-center gap-2 text-center text-sm font-bold text-red-400">
@@ -104,7 +106,7 @@ export default function AuditUrlForm({
       )}
       {!error && url && normalizedPreview.url && normalizedPreview.url !== url && (
         <p className="mt-3 text-center text-sm font-medium text-gray-400">
-          We will audit:{" "}
+          {language === "zh" ? "将要审计：" : "We will audit:"}{" "}
           <span className="text-teal-300">{normalizedPreview.url}</span>
         </p>
       )}

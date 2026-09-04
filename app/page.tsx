@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, AlertCircle, Globe, MousePointer2 } from "lucide-react";
+import { Loader2, AlertCircle, MousePointer2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { authenticatedFetch } from "@/lib/authFetch";
 import { normalizeUrlInput } from "@/lib/normalizeUrl";
 import { useTranslation } from "@/lib/i18n"; // 添加翻译 hook
+import SiteHeader from "@/app/components/SiteHeader";
 
 type RecentReport = {
   id: string;
@@ -28,8 +29,7 @@ export default function Home() {
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState("");
   const [recentReports, setRecentReports] = useState<RecentReport[]>([]);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const { t, language, setLanguage } = useTranslation(); // 添加翻译 hook
+  const { t, language } = useTranslation(); // 添加翻译 hook
   const normalizedPreview = normalizeUrlInput(url);
 
   const loadingMessages = t.home.loadingMessages;
@@ -79,7 +79,7 @@ export default function Home() {
       const res = await authenticatedFetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: normalizedUrl.url }),
+        body: JSON.stringify({ url: normalizedUrl.url, language }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Audit failed.");
@@ -99,134 +99,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#0B0F1A] text-white selection:bg-blue-900">
-      {/* 1. NAVBAR */}
-      <nav className="sticky top-0 z-50 bg-[#0B0F1A]/80 backdrop-blur-md border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-teal-400 rounded-lg flex items-center justify-center">
-              <Globe className="text-white w-5 h-5" />
-            </div>
-            <span className="font-bold text-xl tracking-tight">SiteScope</span>
-          </div>
-
-          {/* Desktop Menu 部分添加语言切换器 */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-300">
-            <Link href="/" className="hover:text-white transition-colors">{t.nav.analyze}</Link>
-            <Link href="#pricing" className="hover:text-white transition-colors">{t.nav.pricing}</Link>
-            <Link href="/content" className="hover:text-white transition-colors">{t.nav.content}</Link>
-            <Link href="/services" className="hover:text-white transition-colors">{t.nav.services}</Link>
-            <Link href="/reports" className="hover:text-white transition-colors">{t.nav.history}</Link>
-  
-            {/* Language Switcher */}
-            <div className="flex items-center gap-2 bg-[#111827] rounded-lg p-1 border border-gray-700">
-              <button
-                onClick={() => setLanguage('en')}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
-                  language === 'en' 
-                    ? 'bg-[#3A8DFF] text-white' 
-                    : 'text-gray-400 hover:text-white'
-                }`}
-            >
-              EN
-            </button>
-            <button
-              onClick={() => setLanguage('zh')}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
-                language === 'zh' 
-                  ? 'bg-[#3A8DFF] text-white' 
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              中
-            </button>
-          </div>
-
-            <Link
-              href="/login"
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-teal-400 text-sm font-medium hover:opacity-90 transition-all"
-            >
-              {t.nav.login}
-            </Link>
-          </div>
-
-          {/* Mobile Toggle */}
-          <button
-            className="md:hidden text-gray-300 hover:text-white transition-colors"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            ☰
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile Menu 部分也添加语言切换器 */}
-      {menuOpen && (
-        <div className="md:hidden bg-[#111827] border-b border-gray-800">
-          <div className="px-6 py-4 space-y-3">
-            <Link
-              href="/"
-              className="block py-2 text-gray-300 hover:text-white transition-colors"
-            >
-              {t.nav.analyze}
-            </Link>
-            <Link
-              href="#pricing"
-              className="block py-2 text-gray-300 hover:text-white transition-colors"
-            >
-              {t.nav.pricing}
-            </Link>
-            <Link
-              href="/content"
-              className="block py-2 text-gray-300 hover:text-white transition-colors"
-            >
-              {t.nav.content}
-            </Link>
-            <Link
-              href="/services"
-              className="block py-2 text-gray-300 hover:text-white transition-colors"
-            >
-              {t.nav.services}
-            </Link>
-            <Link
-              href="/reports"
-              className="block py-2 text-gray-300 hover:text-white transition-colors"
-            >
-              {t.nav.history}
-            </Link>
-            
-            {/* Mobile Language Switcher */}
-      <div className="flex items-center gap-2 bg-[#111827] rounded-lg p-1 border border-gray-700 mt-4">
-        <button
-          onClick={() => setLanguage('en')}
-          className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all ${
-            language === 'en' 
-              ? 'bg-[#3A8DFF] text-white' 
-              : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          English
-        </button>
-        <button
-          onClick={() => setLanguage('zh')}
-          className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all ${
-            language === 'zh' 
-              ? 'bg-[#3A8DFF] text-white' 
-              : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          中文
-        </button>
-      </div>
-            
-            <Link
-              href="/login"
-              className="block w-full px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-teal-400 text-sm font-medium hover:opacity-90 transition-all text-center mt-2"
-            >
-              {t.nav.login}
-            </Link>
-          </div>
-        </div>
-      )}
+      <SiteHeader />
       {/* 2. HERO SECTION */}
       <section id="audit" className="relative pt-20 pb-24 overflow-hidden scroll-mt-24">
         <div className="max-w-5xl mx-auto px-6 text-center">

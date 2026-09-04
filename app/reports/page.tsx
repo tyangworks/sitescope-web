@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { authenticatedFetch } from "@/lib/authFetch";
 import { useTranslation } from "@/lib/i18n";
+import SiteHeader from "@/app/components/SiteHeader";
 
 type Report = {
   id: string;
@@ -20,7 +21,7 @@ export default function ReportsList() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [authRequired, setAuthRequired] = useState(false);
-  const { t, language, setLanguage } = useTranslation();
+  const { t, language } = useTranslation();
 
   async function handleLogout() {
     await fetch("/auth/signout", { method: "POST" });
@@ -60,79 +61,50 @@ export default function ReportsList() {
 
   return (
     <main className="min-h-screen bg-[#0B0F1A]">
-      {/* Navigation - 修复显示问题 */}
-      <nav className="bg-[#0B0F1A] border-b border-[#1F2937] sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-[#3A8DFF] to-[#00C2A8] rounded-lg flex items-center justify-center">
-              <Globe className="text-white w-4 h-4" />
-            </div>
-            <span className="font-bold text-white">SiteScope</span>
-          </Link>
+      <SiteHeader />
 
-          <div className="flex items-center gap-4">
-            {/* Language Switcher */}
-            <div className="flex items-center gap-2 bg-[#111827] rounded-lg p-1 border border-[#1F2937]">
-              <button
-                onClick={() => setLanguage("en")}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
-                  language === "en"
-                    ? "bg-[#3A8DFF] text-white"
-                    : "text-[#9CA3AF] hover:text-white"
-                }`}
-              >
-                EN
-              </button>
-              <button
-                onClick={() => setLanguage("zh")}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
-                  language === "zh"
-                    ? "bg-[#3A8DFF] text-white"
-                    : "text-[#9CA3AF] hover:text-white"
-                }`}
-              >
-                中
-              </button>
-            </div>
-
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        {/* Header */}
+        <div className="mb-12 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-4xl font-black text-white mb-3">
+              {t.reports.title}
+            </h1>
+            <p className="text-[#9CA3AF] text-lg">{t.reports.subtitle}</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-3">
             <Link
               href="/"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl gradient-bg text-white font-semibold hover:opacity-90 transition-all"
+              className="flex items-center gap-2 rounded-xl px-4 py-2 font-semibold text-white gradient-bg"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" />
               {t.reports.newAnalysis}
             </Link>
             <button
               type="button"
               onClick={handleLogout}
-              title="Sign out"
+              title={language === "zh" ? "退出登录" : "Sign out"}
               className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#1F2937] text-[#9CA3AF] transition-colors hover:border-[#3A8DFF] hover:text-white"
             >
               <LogOut className="h-4 w-4" />
             </button>
           </div>
         </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-black text-white mb-3">
-            {t.reports.title}
-          </h1>
-          <p className="text-[#9CA3AF] text-lg">{t.reports.subtitle}</p>
-        </div>
 
         {/* Reports Grid */}
         {authRequired ? (
           <div className="border-2 border-dashed border-[#1F2937] bg-[#111827] py-20 text-center">
             <Globe className="mx-auto mb-6 h-12 w-12 text-[#6B7280]" />
-            <h3 className="mb-3 text-xl font-bold text-white">Sign in to view saved reports</h3>
+            <h3 className="mb-3 text-xl font-bold text-white">
+              {language === "zh" ? "登录后查看已保存的报告" : "Sign in to view saved reports"}
+            </h3>
             <p className="mx-auto mb-6 max-w-md text-[#9CA3AF]">
-              Your report history is private and only available to your account.
+              {language === "zh"
+                ? "你的报告历史为私有内容，仅当前账号可以查看。"
+                : "Your report history is private and only available to your account."}
             </p>
             <Link href="/login" className="inline-flex items-center gap-2 rounded-xl px-6 py-3 font-semibold text-white gradient-bg">
-              Sign In
+              {language === "zh" ? "登录" : "Sign In"}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link"; // 修复：使用默认导入
 import {
-  Globe,
   ArrowLeft,
   Loader2,
   Mail,
@@ -14,6 +13,7 @@ import {
 import { useTranslation } from "@/lib/i18n";
 import { toast } from "sonner";
 import { normalizeUrlInput } from "@/lib/normalizeUrl";
+import SiteHeader from "@/app/components/SiteHeader";
 
 function errorMessage(error: unknown, fallback: string) {
   if (error instanceof Error && error.message) return error.message;
@@ -38,7 +38,48 @@ export default function ContactPage() {
     message: "",
   });
   const [loading, setLoading] = useState(false);
-  const { t, language, setLanguage } = useTranslation();
+  const { t, language } = useTranslation();
+  const pageCopy = language === "zh"
+    ? {
+        invalidWebsite: "请输入有效的网站地址。",
+        submitted: "提交成功，我们会尽快联系你。",
+        savedOnly: "信息已保存，但邮件通知暂时不可用。",
+        submitFailed: "提交失败，请稍后重试。",
+        companyPlaceholder: "你的公司名称",
+        selectGoal: "选择服务类型",
+        audit: "AI 网站审计",
+        optimization: "网站优化",
+        build: "网站建设与改版",
+        enterprise: "企业解决方案",
+        other: "其他",
+        messagePlaceholder: "请介绍一下你的项目和目标……",
+        responseTime: "我们的团队会审核你的需求，并在 24 小时内回复。",
+        features: [
+          ["定制设计", "根据你的品牌量身设计"],
+          ["性能优先", "实现快速、稳定的加载体验"],
+          ["SEO 优化", "从结构上提升搜索表现"],
+        ],
+      }
+    : {
+        invalidWebsite: "Please enter a valid website.",
+        submitted: "Request submitted successfully!",
+        savedOnly: "Saved. Email notification is not configured yet.",
+        submitFailed: "Failed to submit request.",
+        companyPlaceholder: "Your Company Name",
+        selectGoal: "Select your goal",
+        audit: "AI Website Audit",
+        optimization: "Website Optimization",
+        build: "Website Build & Redesign",
+        enterprise: "Enterprise Solutions",
+        other: "Other",
+        messagePlaceholder: "Tell us more about your project...",
+        responseTime: "Our team will review your request and get back to you within 24 hours.",
+        features: [
+          ["Custom Design", "Unique designs tailored to your brand"],
+          ["Performance First", "Lightning-fast load times"],
+          ["SEO Optimized", "Built to rank on search engines"],
+        ],
+      };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +89,7 @@ export default function ContactPage() {
       : { url: "", error: "" };
 
     if (formData.website && !normalizedWebsite.url) {
-      toast.error(normalizedWebsite.error || "Please enter a valid website.");
+      toast.error(normalizedWebsite.error || pageCopy.invalidWebsite);
       return;
     }
 
@@ -70,9 +111,9 @@ export default function ContactPage() {
         throw new Error(result.error || "Failed to submit request.");
       }
 
-      toast.success("Request submitted successfully!");
+      toast.success(pageCopy.submitted);
       if (!result.emailSent) {
-        toast.message("Saved. Email notification is not configured yet.");
+        toast.message(pageCopy.savedOnly);
       }
       setFormData({
         email: "",
@@ -82,7 +123,7 @@ export default function ContactPage() {
         message: "",
       });
     } catch (error: unknown) {
-      toast.error(errorMessage(error, "Failed to submit request."));
+      toast.error(errorMessage(error, pageCopy.submitFailed));
     } finally {
       setLoading(false);
     }
@@ -90,50 +131,7 @@ export default function ContactPage() {
 
   return (
     <main className="min-h-screen bg-[#0B0F1A]">
-      {/* Navigation */}
-      <nav className="bg-[#0B0F1A]/80 backdrop-blur-md border-b border-[#1F2937] sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-[#3A8DFF] to-[#00C2A8] rounded-lg flex items-center justify-center">
-              <Globe className="text-white w-4 h-4" />
-            </div>
-            <span className="font-bold text-white">SiteScope</span>
-          </Link>
-
-          <div className="flex items-center gap-4">
-            {/* Language Switcher */}
-            <div className="flex items-center gap-2 bg-[#111827] rounded-lg p-1 border border-[#1F2937]">
-              <button
-                onClick={() => setLanguage("en")}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
-                  language === "en"
-                    ? "bg-[#3A8DFF] text-white"
-                    : "text-[#9CA3AF] hover:text-white"
-                }`}
-              >
-                EN
-              </button>
-              <button
-                onClick={() => setLanguage("zh")}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
-                  language === "zh"
-                    ? "bg-[#3A8DFF] text-white"
-                    : "text-[#9CA3AF] hover:text-white"
-                }`}
-              >
-                中
-              </button>
-            </div>
-
-            <Link
-              href="/login"
-              className="px-4 py-2 rounded-xl gradient-bg text-white font-semibold hover:opacity-90 transition-all"
-            >
-              {t.nav.login}
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SiteHeader />
 
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Back Button */}
@@ -192,7 +190,7 @@ export default function ContactPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, companyName: e.target.value })
                   }
-                  placeholder="Your Company Name"
+                  placeholder={pageCopy.companyPlaceholder}
                   className="w-full bg-[#0B0F1A] border border-[#1F2937] rounded-xl pl-10 pr-4 py-3 outline-none focus:border-[#3A8DFF] focus:ring-2 focus:ring-[#3A8DFF]/20 text-white placeholder-[#6B7280] transition-all"
                   required
                 />
@@ -244,22 +242,22 @@ export default function ContactPage() {
                   className="w-full bg-[#0B0F1A] border border-[#1F2937] rounded-xl pl-10 pr-4 py-3 outline-none focus:border-[#3A8DFF] focus:ring-2 focus:ring-[#3A8DFF]/20 text-white transition-all appearance-none cursor-pointer"
                 >
                   <option value="" className="bg-[#111827]">
-                    Select your goal
+                    {pageCopy.selectGoal}
                   </option>
                   <option value="ai-audit" className="bg-[#111827]">
-                    AI Website Audit
+                    {pageCopy.audit}
                   </option>
                   <option value="optimization" className="bg-[#111827]">
-                    Website Optimization
+                    {pageCopy.optimization}
                   </option>
                   <option value="build-redesign" className="bg-[#111827]">
-                    Website Build & Redesign
+                    {pageCopy.build}
                   </option>
                   <option value="enterprise" className="bg-[#111827]">
-                    Enterprise Solutions
+                    {pageCopy.enterprise}
                   </option>
                   <option value="other" className="bg-[#111827]">
-                    Other
+                    {pageCopy.other}
                   </option>
                 </select>
               </div>
@@ -277,7 +275,7 @@ export default function ContactPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, message: e.target.value })
                   }
-                  placeholder="Tell us more about your project..."
+                  placeholder={pageCopy.messagePlaceholder}
                   rows={4}
                   className="w-full bg-[#0B0F1A] border border-[#1F2937] rounded-xl pl-10 pr-4 py-3 outline-none focus:border-[#3A8DFF] focus:ring-2 focus:ring-[#3A8DFF]/20 text-white placeholder-[#6B7280] transition-all resize-none"
                 />
@@ -303,8 +301,7 @@ export default function ContactPage() {
           {/* Info */}
           <div className="mt-6 p-4 bg-[#0B0F1A] rounded-xl border border-[#1F2937]">
             <p className="text-sm text-[#9CA3AF] text-center">
-              🚀 Our team will review your request and get back to you within 24
-              hours.
+              {pageCopy.responseTime}
             </p>
           </div>
         </div>
@@ -313,19 +310,19 @@ export default function ContactPage() {
         <div className="mt-12 grid md:grid-cols-3 gap-6">
           {[
             {
-              icon: <Globe className="w-6 h-6" />,
-              title: "Custom Design",
-              desc: "Unique designs tailored to your brand",
+              icon: <WebIcon className="w-6 h-6" />,
+              title: pageCopy.features[0][0],
+              desc: pageCopy.features[0][1],
             },
             {
               icon: <Target className="w-6 h-6" />,
-              title: "Performance First",
-              desc: "Lightning-fast load times",
+              title: pageCopy.features[1][0],
+              desc: pageCopy.features[1][1],
             },
             {
               icon: <MessageSquare className="w-6 h-6" />,
-              title: "SEO Optimized",
-              desc: "Built to rank on search engines",
+              title: pageCopy.features[2][0],
+              desc: pageCopy.features[2][1],
             },
           ].map((feature, i) => (
             <div
