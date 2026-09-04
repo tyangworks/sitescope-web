@@ -6,6 +6,14 @@ export type ReportIssue = {
   fix: string;
 };
 
+export type ProReportIssue = ReportIssue & {
+  category: "SEO" | "GEO" | "Content" | "Performance" | "Conversion" | "Technical";
+  priority: "high" | "medium" | "low";
+  evidence: string;
+  why_it_matters: string;
+  recommendation: string;
+};
+
 export type ReportSuggestion = {
   area: string;
   suggestion: string;
@@ -16,6 +24,10 @@ export type FixPlan = {
   action: string;
   code_snippet?: string;
   priority: "high" | "medium" | "low";
+  category: ProReportIssue["category"];
+  rationale: string;
+  implementation_steps: string[];
+  expected_outcome: string;
 };
 
 export type RawReportDatabaseRow = {
@@ -57,7 +69,7 @@ export type FreeReportResponse = PublicReportBase & {
 
 export type ProReportResponse = PublicReportBase & {
   access_level: "pro";
-  seo_issues: ReportIssue[];
+  seo_issues: ProReportIssue[];
   content_suggestions: ReportSuggestion[];
   fix_plans: FixPlan[];
 };

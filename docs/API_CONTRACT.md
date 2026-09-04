@@ -262,14 +262,17 @@ Classification: compatible, but AI output is not validated before insertion.
 
 ### Issues
 
-FRONTEND EXPECTS: `reports.seo_issues[]` with `issue`, `impact`, and `fix`.
+FRONTEND EXPECTS: Free projections contain `issue`, `impact`, and `fix`. Pro
+projections additionally contain `category`, `priority`, `evidence`,
+`why_it_matters`, `recommendation`.
 
 CRAWLER RETURNS: fresh payload `seoIssues[]`; cached payload
 `seo_issues[]`.
 
 DATABASE STORES: `seo_issues` JSONB.
 
-Classification: persistence is compatible; direct API response is inconsistent.
+Classification: compatible through JSONB persistence and the Web BFF projection
+layer. Detailed fields are intentionally removed from Free responses.
 
 ### Summary
 
@@ -303,35 +306,41 @@ Classification: business concern duplicated in Crawler; target owner is Web/BFF.
 
 ### Fix plans and code snippets
 
-FRONTEND EXPECTS: `reports.fix_plans[]`.
+FRONTEND EXPECTS: `reports.fix_plans[]` containing action, category, priority,
+rationale, implementation steps, optional code snippet, and expected outcome.
 
-CRAWLER RETURNS: no fix plans.
+CRAWLER RETURNS: validated, evidence-linked SEO/GEO fix plans for newly generated
+reports, with deterministic fallback plans if AI output is invalid.
 
 DATABASE STORES: `fix_plans`, default empty array.
 
-Classification: planned but not implemented; Pro contract is incomplete.
+Classification: compatible for newly generated reports. Legacy reports can have
+an empty array and the UI identifies them as legacy instead of inventing detail.
 
 ### Category scores, evidence, and performance
 
-FRONTEND EXPECTS: no stable typed fields yet, although UI loading text claims
-performance checks.
+FRONTEND EXPECTS: typed Pro evidence and SEO/GEO category labels. No independent
+category score is currently claimed.
 
-CRAWLER RETURNS: no category scores, evidence model, or measured performance
-metrics.
+CRAWLER RETURNS: measured metadata, heading, link, image, structured-data,
+entity, FAQ, and source signals. AI interpretation is constrained to this data.
+It does not return Lighthouse/Core Web Vitals measurements yet.
 
 DATABASE STORES: no corresponding fields in the current schema.
 
-Classification: missing; Phase 8 report contract work is required.
+Classification: SEO/GEO evidence implemented; measured performance auditing and
+category scores remain future contract work.
 
 ### Language
 
-FRONTEND EXPECTS: localized UI, but sends no analysis-language field.
+FRONTEND EXPECTS: localized UI and sends `language` as `en` or `zh`.
 
-CRAWLER RETURNS: English prompt/fallback output.
+CRAWLER RETURNS: English or Simplified Chinese analysis and fallback output.
 
 DATABASE STORES: no report language.
 
-Classification: missing.
+Classification: compatible for newly generated reports. Legacy report text is
+not automatically translated.
 
 ### Status and error code
 

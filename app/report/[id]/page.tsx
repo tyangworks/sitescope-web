@@ -27,6 +27,7 @@ import { useTranslation } from "@/lib/i18n";
 import type {
   AuthorizedReportResponse,
   FixPlan,
+  ProReportIssue,
   ReportIssue,
   ReportSuggestion,
 } from "@/lib/reports/types";
@@ -128,6 +129,14 @@ export default function ReportDetail() {
       toast.error("Invalid report id.");
       return;
     }
+    if (isAdmin) {
+      setUnlocking(true);
+      await fetchReport();
+      setUnlocking(false);
+      toast.success(t.report.adminProAccess);
+      return;
+    }
+
     const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
     if (!validEmail) {
       toast.error("Enter a valid email to continue.");
@@ -565,6 +574,14 @@ export default function ReportDetail() {
                 <div className="bg-[#0B0F1A] rounded-xl p-4 mb-6 border border-[#1F2937]">
                   <div className="flex items-center gap-2 mb-2">
                     <CheckCircle2 className="w-4 h-4 text-[#00C2A8]" />
+                    <span className="text-sm text-white">{t.report.seoAudit}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 className="w-4 h-4 text-[#00C2A8]" />
+                    <span className="text-sm text-white">{t.report.geoAudit}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 className="w-4 h-4 text-[#00C2A8]" />
                     <span className="text-sm text-white">{t.report.stepByStep}</span>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
@@ -605,6 +622,61 @@ export default function ReportDetail() {
           )}
 
           {isPro && <div className="space-y-6">
+            <div className="mb-8">
+              <h3 className="mb-2 text-xl font-bold text-white">{t.report.proAuditOverview}</h3>
+              <p className="mb-6 text-sm text-[#9CA3AF]">{t.report.proAuditSubtitle}</p>
+              <div className="grid gap-6 lg:grid-cols-2">
+                {(["SEO", "GEO"] as const).map((category) => {
+                  const findings = (report.seo_issues as ProReportIssue[]).filter(
+                    (item) => item.category === category,
+                  );
+                  return (
+                    <section key={category} className="border border-[#1F2937] bg-[#111827] p-6">
+                      <div className="mb-5 flex items-center justify-between gap-3">
+                        <h4 className="text-lg font-bold text-white">
+                          {category === "SEO" ? t.report.seoAudit : t.report.geoAudit}
+                        </h4>
+                        <span className="text-xs font-bold text-[#00C2A8]">
+                          {findings.length} {t.report.findings}
+                        </span>
+                      </div>
+                      <div className="space-y-5">
+                        {findings.length === 0 && (
+                          <p className="text-sm text-[#9CA3AF]">{t.report.legacyProNotice}</p>
+                        )}
+                        {findings.map((item, index) => (
+                          <article key={`${category}-${index}`} className="border-t border-[#1F2937] pt-5 first:border-0 first:pt-0">
+                            <div className="mb-2 flex items-start justify-between gap-3">
+                              <h5 className="font-semibold text-white">{item.issue}</h5>
+                              <span className="text-xs font-bold uppercase text-[#3A8DFF]">{item.priority}</span>
+                            </div>
+                            <dl className="space-y-3 text-sm leading-relaxed">
+                              <div>
+                                <dt className="font-semibold text-[#9CA3AF]">{t.report.evidence}</dt>
+                                <dd className="text-[#D1D5DB]">{item.evidence || item.fix}</dd>
+                              </div>
+                              <div>
+                                <dt className="font-semibold text-[#9CA3AF]">{t.report.whyItMatters}</dt>
+                                <dd className="text-[#D1D5DB]">{item.why_it_matters || item.impact}</dd>
+                              </div>
+                              <div>
+                                <dt className="font-semibold text-[#00C2A8]">{t.report.recommendedFix}</dt>
+                                <dd className="text-[#D1D5DB]">{item.recommendation || item.fix}</dd>
+                              </div>
+                            </dl>
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            </div>
+            {fixPlans.length === 0 && (
+              <div className="border border-[#1F2937] bg-[#111827] p-6 text-sm leading-relaxed text-[#9CA3AF]">
+                {t.report.legacyProNotice}
+              </div>
+            )}
             {fixPlans.map((plan: FixPlan, i: number) => (
               <div
                 key={i}
@@ -627,6 +699,7 @@ export default function ReportDetail() {
                       <h4 className="font-bold text-white text-lg mb-2">
                         {plan.action}
                       </h4>
+                      <p className="mb-3 text-sm leading-relaxed text-[#9CA3AF]">{plan.rationale}</p>
                       <span
                         className={`text-xs font-bold px-2 py-1 rounded-full ${
                           plan.priority === "high"
@@ -655,6 +728,26 @@ export default function ReportDetail() {
                         </code>
                       </pre>
                     </div>
+                  )}
+
+                  {plan.implementation_steps.length > 0 && (
+                    <div className="mt-5">
+                      <h5 className="mb-3 text-sm font-semibold text-[#3A8DFF]">{t.report.implementationSteps}</h5>
+                      <ol className="space-y-2 text-sm text-[#D1D5DB]">
+                        {plan.implementation_steps.map((step, stepIndex) => (
+                          <li key={stepIndex} className="flex gap-3">
+                            <span className="text-[#00C2A8]">{stepIndex + 1}.</span>
+                            <span>{step}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+                  {plan.expected_outcome && (
+                    <p className="mt-5 border-t border-[#1F2937] pt-4 text-sm text-[#9CA3AF]">
+                      <span className="font-semibold text-white">{t.report.expectedOutcome}: </span>
+                      {plan.expected_outcome}
+                    </p>
                   )}
                 </div>
               </div>

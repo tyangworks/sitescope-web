@@ -65,6 +65,23 @@ test("admin delete verifies server user and configured identity", () => {
   assert.doesNotMatch(route, /x-admin-key|localStorage/);
 });
 
+test("checkout bypass for administrators uses the verified server session", () => {
+  const route = source("../app/api/create-checkout-session/route.ts");
+  const userLookup = route.indexOf("getRequestUser(request)");
+  const adminCheck = route.indexOf("isAdminUser(user)");
+  assert.ok(userLookup >= 0 && adminCheck > userLookup);
+  assert.match(route, /adminUnlocked:\s*true/);
+  assert.doesNotMatch(route, /body\.isAdmin|body\.admin|customerEmail\s*===/);
+});
+
+test("Pro purchase page sends the verified session and presents admin access", () => {
+  const page = source("../app/pro-audit/page.tsx");
+  assert.match(page, /authenticatedFetch\("\/api\/auth\/me"\)/);
+  assert.match(page, /authenticatedFetch\("\/api\/create-checkout-session"/);
+  assert.match(page, /administrator account already includes full Pro access/);
+  assert.match(page, /管理员账号已包含完整 Pro 权限/);
+});
+
 test("report admin UI is driven by server identity and the Web BFF", () => {
   const reportPage = source("../app/report/[id]/page.tsx");
   assert.match(reportPage, /\/api\/auth\/me/);

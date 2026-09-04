@@ -4,6 +4,7 @@ import type {
   FixPlan,
   FreeReportResponse,
   ProReportResponse,
+  ProReportIssue,
   RawReportDatabaseRow,
   ReportHistoryItem,
   ReportIssue,
@@ -29,6 +30,34 @@ function projectIssues(value: unknown): ReportIssue[] {
   }));
 }
 
+const categories = new Set(["SEO", "GEO", "Content", "Performance", "Conversion", "Technical"]);
+
+function projectProIssues(value: unknown): ProReportIssue[] {
+  if (!Array.isArray(value)) return [];
+  return value.map(asRecord).filter(Boolean).map((item) => {
+    const impact = text(item?.impact);
+    const priority = item?.priority;
+    const rawCategory = text(item?.category);
+    return {
+      issue: text(item?.issue),
+      impact,
+      fix: text(item?.fix),
+      category: (categories.has(rawCategory) ? rawCategory : "SEO") as ProReportIssue["category"],
+      priority:
+        priority === "high" || priority === "medium" || priority === "low"
+          ? priority
+          : impact === "High"
+            ? "high"
+            : impact === "Low"
+              ? "low"
+              : "medium",
+      evidence: text(item?.evidence),
+      why_it_matters: text(item?.why_it_matters),
+      recommendation: text(item?.recommendation) || text(item?.fix),
+    };
+  });
+}
+
 function projectSuggestions(value: unknown): ReportSuggestion[] {
   if (!Array.isArray(value)) return [];
   return value.map(asRecord).filter(Boolean).map((item) => ({
@@ -51,6 +80,12 @@ function projectFixPlans(value: unknown): FixPlan[] {
         priority === "high" || priority === "medium" || priority === "low"
           ? priority
           : "medium",
+      category: (categories.has(text(item?.category)) ? text(item?.category) : "SEO") as FixPlan["category"],
+      rationale: text(item?.rationale),
+      implementation_steps: Array.isArray(item?.implementation_steps)
+        ? item.implementation_steps.map(text).filter(Boolean).slice(0, 8)
+        : [],
+      expected_outcome: text(item?.expected_outcome),
     };
   });
 }
@@ -94,7 +129,7 @@ export function projectProReport(
   return {
     ...projectBase(report),
     access_level: "pro",
-    seo_issues: projectIssues(report.seo_issues),
+    seo_issues: projectProIssues(report.seo_issues),
     content_suggestions: projectSuggestions(report.content_suggestions),
     fix_plans: projectFixPlans(report.fix_plans),
   };

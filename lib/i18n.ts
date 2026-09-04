@@ -125,6 +125,17 @@ export interface Translations {
     freeUnlock: string;
     upgradeToPro: string;
     processing: string;
+    proAuditOverview: string;
+    proAuditSubtitle: string;
+    seoAudit: string;
+    geoAudit: string;
+    findings: string;
+    evidence: string;
+    whyItMatters: string;
+    implementationSteps: string;
+    expectedOutcome: string;
+    legacyProNotice: string;
+    adminProAccess: string;
   };
   auth: {
     loginTitle: string;
@@ -198,7 +209,7 @@ export const translations: Record<Language, Translations> = {
       pricingFreeButton: "Try Free",
       pricingPopular: "Most Popular",
       pricingProTitle: "Pro",
-      pricingProDesc: "Full audit report + step-by-step fix plan & code snippets.",
+      pricingProDesc: "Detailed SEO + GEO audit, evidence, prioritized fix plan, implementation steps, and code snippets.",
       pricingOneTime: "one-time unlock",
       pricingBuyPro: "Buy Pro Audit",
       pricingCustomTitle: "Custom",
@@ -273,7 +284,7 @@ export const translations: Record<Language, Translations> = {
       upgradeProDesc:
         "Unlock detailed fix plans and code snippets with complete solutions.",
       proLockedDesc:
-        "Unlock the full audit report, prioritized fix plan, and implementation-ready insights.",
+        "Unlock detailed SEO + GEO findings, measured evidence, a prioritized fix plan, and implementation-ready guidance.",
       oneTime: "one-time",
       priorityPlan: "Priority-ranked action plan",
       stepByStep: "Detailed fix steps",
@@ -284,6 +295,17 @@ export const translations: Record<Language, Translations> = {
       freeUnlock: "Free Unlock Full Report",
       upgradeToPro: "Unlock Pro Audit - $9",
       processing: "Processing...",
+      proAuditOverview: "Detailed SEO + GEO Audit",
+      proAuditSubtitle: "Evidence-backed findings for search engines and AI answer engines.",
+      seoAudit: "Technical & On-page SEO",
+      geoAudit: "Generative Engine Optimization",
+      findings: "findings",
+      evidence: "Evidence",
+      whyItMatters: "Why it matters",
+      implementationSteps: "Implementation steps",
+      expectedOutcome: "Expected outcome",
+      legacyProNotice: "This legacy report does not contain detailed findings. Run a new audit to use the upgraded Pro analyzer.",
+      adminProAccess: "Administrator Pro access confirmed.",
     },
     auth: {
       loginTitle: "Welcome Back",
@@ -356,7 +378,7 @@ export const translations: Record<Language, Translations> = {
       pricingFreeButton: "免费试用",
       pricingPopular: "最受欢迎",
       pricingProTitle: "Pro",
-      pricingProDesc: "完整审计报告、分步骤修复计划和代码片段。",
+      pricingProDesc: "详细 SEO + GEO 审计、检测证据、优先修复计划、实施步骤和代码片段。",
       pricingOneTime: "一次性解锁",
       pricingBuyPro: "购买 Pro 审计",
       pricingCustomTitle: "定制",
@@ -428,7 +450,7 @@ export const translations: Record<Language, Translations> = {
       unlockFullDesc: "输入您的邮箱地址即可免费解锁所有SEO问题的详细分析。",
       upgradePro: "升级到Pro",
       upgradeProDesc: "解锁详细的修复计划和代码片段，获得完整的解决方案。",
-      proLockedDesc: "解锁完整审计、按优先级排列的修复计划和可直接实施的建议。",
+      proLockedDesc: "解锁详细 SEO + GEO 发现、检测证据、优先修复计划和可直接实施的指导。",
       oneTime: "一次性付款",
       priorityPlan: "按优先级排列的行动计划",
       stepByStep: "详细的修复步骤",
@@ -439,6 +461,17 @@ export const translations: Record<Language, Translations> = {
       freeUnlock: "免费解锁完整报告",
       upgradeToPro: "解锁 Pro 审计 - $9",
       processing: "处理中...",
+      proAuditOverview: "详细 SEO + GEO 审计",
+      proAuditSubtitle: "面向传统搜索引擎和 AI 答案引擎的证据型审计结果。",
+      seoAudit: "技术与页面 SEO",
+      geoAudit: "生成式引擎优化（GEO）",
+      findings: "项发现",
+      evidence: "检测证据",
+      whyItMatters: "为什么重要",
+      implementationSteps: "实施步骤",
+      expectedOutcome: "预期结果",
+      legacyProNotice: "这是一份旧版报告，不包含新的详细审计字段。请重新运行审计以使用升级后的 Pro 分析器。",
+      adminProAccess: "已确认管理员 Pro 权限。",
     },
     auth: {
     loginTitle: "欢迎回来",

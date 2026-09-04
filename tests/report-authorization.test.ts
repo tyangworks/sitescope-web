@@ -47,6 +47,10 @@ function report(overrides: Partial<RawReportDatabaseRow> = {}): RawReportDatabas
         action: "Change markup",
         code_snippet: "<main />",
         priority: "high",
+        category: "Technical",
+        rationale: "The markup blocks clear interpretation.",
+        implementation_steps: ["Update the semantic structure"],
+        expected_outcome: "Clearer machine and user understanding.",
         internal_prompt: "secret",
       },
     ],
@@ -125,6 +129,26 @@ test("paid owner receives Pro content", () => {
     "pro",
   );
   assert.equal(projectProReport(raw).fix_plans[0].code_snippet, "<main />");
+});
+
+test("free projections strip detailed SEO and GEO evidence", () => {
+  const raw = report({
+    seo_issues: [{
+      issue: "Missing structured data",
+      impact: "High",
+      fix: "Add Organization schema",
+      category: "GEO",
+      priority: "high",
+      evidence: "No JSON-LD detected",
+      why_it_matters: "AI engines need explicit entity context",
+      recommendation: "Add verified Organization JSON-LD",
+    }],
+  });
+  const free = projectFreeReport(raw);
+  const pro = projectProReport(raw);
+  assert.equal("evidence" in free.seo_issues[0], false);
+  assert.equal(pro.seo_issues[0].category, "GEO");
+  assert.equal(pro.seo_issues[0].evidence, "No JSON-LD detected");
 });
 
 test("paid anonymous owner receives report-specific Pro access", () => {

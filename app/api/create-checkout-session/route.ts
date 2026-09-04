@@ -4,6 +4,8 @@ import {
   getSupabaseServerConfig,
   supabaseServiceRoleEnvMessage,
 } from "@/lib/serverEnv";
+import { isAdminUser } from "@/lib/auth/admin";
+import { getRequestUser } from "@/lib/reports/server";
 
 function cleanText(value: unknown, maxLength = 500) {
   if (typeof value !== "string") return "";
@@ -85,6 +87,17 @@ export async function POST(request: Request) {
         ? "pro_credit"
         : "report_unlock";
 
+    const user = await getRequestUser(request);
+    const isAdminReportUnlock = purchaseType === "report_unlock" && isAdminUser(user);
+    if (purchaseType === "pro_credit" && isAdminUser(user)) {
+      return NextResponse.json({
+        success: true,
+        alreadyPaid: true,
+        adminUnlocked: true,
+        url: "/",
+      });
+    }
+
     if (purchaseType === "report_unlock" && !reportId) {
       return NextResponse.json(
         { error: "reportId is required." },
@@ -92,7 +105,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!isValidEmail(customerEmail)) {
+    if (!isAdminReportUnlock && !isValidEmail(customerEmail)) {
       return NextResponse.json(
         { error: "Enter a valid email to continue." },
         { status: 400 },
@@ -125,6 +138,15 @@ export async function POST(request: Request) {
 
       if (!report) {
         return NextResponse.json({ error: "Report not found." }, { status: 404 });
+      }
+
+      if (isAdminReportUnlock) {
+        return NextResponse.json({
+          success: true,
+          alreadyPaid: true,
+          adminUnlocked: true,
+          url: `/report/${encodeURIComponent(reportId)}`,
+        });
       }
 
       if (report.is_paid) {
