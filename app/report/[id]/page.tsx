@@ -1,4 +1,5 @@
 "use client";
+import SearchVisibility from "@/app/components/SearchVisibility";
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -42,7 +43,7 @@ function errorMessage(error: unknown, fallback: string) {
 
 export default function ReportDetail() {
   const params = useParams();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [report, setReport] = useState<AuthorizedReportResponse | null>(null);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
@@ -538,6 +539,7 @@ export default function ReportDetail() {
           </div>
         )}
 
+        <SearchVisibility scores={report.search_visibility} />
         {/* Tier 3: Pro - Fix Plans and Code Snippets */}
         <div className="mb-12 relative">
           <div className="flex items-center gap-3 mb-6">
@@ -626,15 +628,15 @@ export default function ReportDetail() {
               <h3 className="mb-2 text-xl font-bold text-white">{t.report.proAuditOverview}</h3>
               <p className="mb-6 text-sm text-[#9CA3AF]">{t.report.proAuditSubtitle}</p>
               <div className="grid gap-6 lg:grid-cols-2">
-                {(["SEO", "GEO"] as const).map((category) => {
+                {(["SEO", "GEO", "Performance", "Content", "Conversion"] as const).map((category) => {
                   const findings = (report.seo_issues as ProReportIssue[]).filter(
-                    (item) => item.category === category,
+                    (item) => item.category === category || (category === "SEO" && item.category === "Technical"),
                   );
                   return (
                     <section key={category} className="border border-[#1F2937] bg-[#111827] p-6">
                       <div className="mb-5 flex items-center justify-between gap-3">
                         <h4 className="text-lg font-bold text-white">
-                          {category === "SEO" ? t.report.seoAudit : t.report.geoAudit}
+                          {category === "SEO" ? t.report.seoAudit : category === "GEO" ? t.report.geoAudit : category === "Content" ? (language === "zh" ? "内容与信息" : "Content & Messaging") : category === "Performance" ? (language === "zh" ? "性能" : "Performance") : (language === "zh" ? "转化" : "Conversion")}
                         </h4>
                         <span className="text-xs font-bold text-[#00C2A8]">
                           {findings.length} {t.report.findings}
@@ -642,7 +644,7 @@ export default function ReportDetail() {
                       </div>
                       <div className="space-y-5">
                         {findings.length === 0 && (
-                          <p className="text-sm text-[#9CA3AF]">{t.report.legacyProNotice}</p>
+                          <p className="text-sm text-[#9CA3AF]">{language === "zh" ? "此类别没有可用发现，不代表已通过完整验证。" : "No findings were supplied for this category. This does not establish a complete pass."}</p>
                         )}
                         {findings.map((item, index) => (
                           <article key={`${category}-${index}`} className="border-t border-[#1F2937] pt-5 first:border-0 first:pt-0">

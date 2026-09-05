@@ -9,6 +9,7 @@ import type {
   ReportHistoryItem,
   ReportIssue,
   ReportSuggestion,
+  SearchVisibility,
 } from "./types";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -27,6 +28,7 @@ function projectIssues(value: unknown): ReportIssue[] {
     issue: text(item?.issue),
     impact: text(item?.impact),
     fix: text(item?.fix),
+    ...(categories.has(text(item?.category)) ? { category: text(item?.category) as ReportIssue["category"] } : {}),
   }));
 }
 
@@ -92,6 +94,7 @@ function projectFixPlans(value: unknown): FixPlan[] {
 
 function projectBase(report: RawReportDatabaseRow) {
   return {
+    ...(projectSearchVisibility(report.search_visibility) ? { search_visibility: projectSearchVisibility(report.search_visibility)! } : {}),
     id: report.id,
     url: report.url,
     created_at: report.created_at,
@@ -99,6 +102,17 @@ function projectBase(report: RawReportDatabaseRow) {
     summary: report.summary || "",
     screenshot_url: report.screenshot_url || "",
   };
+}
+
+export function projectSearchVisibility(value: unknown): SearchVisibility | undefined {
+  const raw = asRecord(value);
+  const sub = asRecord(raw?.categories);
+  const valid = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 100;
+  const keys = ["entityClarity", "contentStructure", "evidenceTrust", "structuredData", "answerability", "topicalAuthority"] as const;
+  if (raw?.version !== 1 || raw.scope !== "single_page" || !valid(raw.seo_score) || !valid(raw.geo_score) || !sub || !keys.every((key) => valid(sub[key]))) return undefined;
+  return { version: 1, scope: "single_page", seo_score: raw.seo_score, geo_score: raw.geo_score,
+    categories: Object.fromEntries(keys.map((key) => [key, sub[key]])) as SearchVisibility["categories"],
+    index_restricted: raw.index_restricted === true };
 }
 
 export function projectAnonymousReport(

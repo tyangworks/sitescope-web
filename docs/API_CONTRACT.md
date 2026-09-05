@@ -419,5 +419,18 @@ Therefore:
 - Make fresh and cached analysis responses use one validated schema in Phase 8.
 - Move SaaS business APIs to Web/BFF only after caller migration and tests.
 - Never expose unauthorized report fields to a browser.
+
+## Growth Sprint: Search Visibility v1
+
+- Migration `202609050001_add_search_visibility.sql` adds nullable JSONB `reports.search_visibility`. Apply with operator approval BEFORE deploying either new runtime. No RLS/grant changes.
+- Crawler stores `{ version: 1, scope: 'single_page', seo_score, geo_score, categories: { entityClarity, contentStructure, evidenceTrust, structuredData, answerability, topicalAuthority }, index_restricted }`.
+- Scores are fixed single-page heuristics, not AI-generated scores, search rankings, citation probabilities, or field performance. Six GEO dimensions have equal weight. Each dimension averages boolean observations; index/snippet restrictions cap GEO at 25. llms.txt has no weight.
+- Additional extraction: question-heading count, concise main/article paragraph count, external HTTP(S) links in main/article. Links and paragraph length are proxies, not evidence-quality validation. No cross-page claims.
+- GEO findings are deterministic; AI explanations and plans remain interpretations. Overall score remains the existing AI heuristic, not a measured growth outcome.
+- GET /api/reports/[id] explicitly allowlists readiness numbers and six subscore keys for authorized anonymous/free/pro contexts. No raw JSON spread. Unknown versions or invalid numbers omit the field. Anonymous issues remain capped at three; free responses omit evidence/implementation/code fields; Pro receives detailed existing fields.
+- Existing `seo_issues` gains an optional allowlisted category in Free projections. No existing fields renamed. Cache reuse requires v1 readiness and existing fix plans. Cached report clones retain search_visibility.
+- Legacy reports without readiness remain readable and display Not measured. Rerun for v1. Analysis endpoint still returns ID/screenshot metadata only, not the full report.
+- Rollback: restore prior Web/Crawler commits, leave nullable column in place. Do not drop report data or undo authorization policies.
+
 - Keep Stripe webhook processing authoritative and idempotent.
 - Do not change production schema, RLS, or deployment during this phase.

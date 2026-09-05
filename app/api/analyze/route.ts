@@ -24,7 +24,7 @@ type AnalyzeUpstreamResponse = {
 };
 
 const reportCloneFields =
-  "url, score, summary, screenshot_url, seo_issues, content_suggestions, fix_plans";
+  "url, score, summary, screenshot_url, seo_issues, content_suggestions, fix_plans, search_visibility";
 
 async function readJsonResponse(response: Response): Promise<AnalyzeUpstreamResponse> {
   const contentType = response.headers.get("content-type") || "";

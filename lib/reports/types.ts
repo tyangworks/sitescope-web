@@ -1,6 +1,7 @@
 export type ReportAccessLevel = "anonymous" | "free" | "pro" | "denied";
 
 export type ReportIssue = {
+  category?: "SEO" | "GEO" | "Content" | "Performance" | "Conversion" | "Technical";
   issue: string;
   impact: string;
   fix: string;
@@ -31,6 +32,7 @@ export type FixPlan = {
 };
 
 export type RawReportDatabaseRow = {
+  search_visibility?: unknown;
   id: string;
   url: string;
   created_at: string;
@@ -47,12 +49,22 @@ export type RawReportDatabaseRow = {
 };
 
 type PublicReportBase = {
+  search_visibility?: SearchVisibility;
   id: string;
   url: string;
   created_at: string;
   score: number;
   summary: string;
   screenshot_url: string;
+};
+
+export type SearchVisibility = {
+  version: 1;
+  scope: "single_page";
+  seo_score: number;
+  geo_score: number;
+  categories: Record<"entityClarity" | "contentStructure" | "evidenceTrust" | "structuredData" | "answerability" | "topicalAuthority", number>;
+  index_restricted: boolean;
 };
 
 export type AnonymousReportResponse = PublicReportBase & {
