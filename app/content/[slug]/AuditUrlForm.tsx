@@ -1,4 +1,5 @@
 "use client";
+import { trackGrowth } from "@/lib/analytics";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -40,6 +41,7 @@ export default function AuditUrlForm({
     setUrl(normalized.url);
     setError("");
     setLoading(true);
+    if (window.location.pathname.startsWith("/content/")) trackGrowth("content_audit_cta_clicked");
 
     try {
       const response = await authenticatedFetch("/api/analyze", {

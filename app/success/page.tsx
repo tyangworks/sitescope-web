@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ConfirmedCheckoutEvent } from "@/app/components/GrowthTracking";
 import { CheckCircle2, ArrowRight, AlertCircle, Globe } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -64,6 +65,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
   return (
     <main className="min-h-screen bg-[#0B0F1A] px-6 py-16 text-white">
+      {!errorMessage && <ConfirmedCheckoutEvent />}
       <div className="mx-auto max-w-2xl">
         <Link href="/" className="mb-10 flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-teal-400">

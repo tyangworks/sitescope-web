@@ -1,4 +1,5 @@
 "use client";
+import { trackGrowth } from "@/lib/analytics";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -32,6 +33,7 @@ export default function LoginPage() {
 
     try {
       const next = getReturnPath();
+      trackGrowth("signup_started");
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -57,6 +59,7 @@ export default function LoginPage() {
     setOauthLoading(providerId);
     
     try {
+      trackGrowth("signup_started");
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {

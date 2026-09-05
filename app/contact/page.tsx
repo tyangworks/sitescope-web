@@ -1,4 +1,5 @@
 "use client";
+import { trackGrowth } from "@/lib/analytics";
 
 import { useState } from "react";
 import Link from "next/link"; // 修复：使用默认导入
@@ -111,6 +112,7 @@ export default function ContactPage() {
         throw new Error(result.error || "Failed to submit request.");
       }
 
+      trackGrowth("service_lead_submitted");
       toast.success(pageCopy.submitted);
       if (!result.emailSent) {
         toast.message(pageCopy.savedOnly);

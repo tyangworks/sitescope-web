@@ -14,6 +14,7 @@ export async function GET(request: Request) {
     if (!error) {
       const response = NextResponse.redirect(new URL(next, requestUrl.origin));
       response.headers.set("Cache-Control", "private, no-store");
+      response.cookies.set("sitescope_signup_completed", "1", { path: "/", maxAge: 120, sameSite: "lax", secure: process.env.NODE_ENV === "production" });
       return response;
     }
   }
