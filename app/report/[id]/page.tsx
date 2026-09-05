@@ -442,17 +442,17 @@ export default function ReportDetail() {
         <div className="grid lg:grid-cols-3 gap-8 mb-12">
           <div className="lg:col-span-2 bg-[#111827] rounded-2xl p-4 border border-[#1F2937] shadow-xl">
             <div className="rounded-xl overflow-hidden aspect-video bg-[#0B0F1A] relative border border-[#1F2937]">
-              {!imageLoaded && (
+              {!imageLoaded && report.screenshot_url && (
                 <div className="absolute inset-0 animate-pulse bg-[#111827]" />
               )}
-              <Image
+              {report.screenshot_url ? <Image
                 src={report.screenshot_url}
                 alt="Site preview"
                 fill
                 sizes="(min-width: 1024px) 66vw, 100vw"
                 className="w-full h-full object-contain"
                 onLoad={() => setImageLoaded(true)}
-              />
+              /> : <p className="flex h-full items-center justify-center text-sm text-gray-400">{language === "zh" ? "没有可用截图" : "Screenshot unavailable"}</p>}
             </div>
           </div>
 
