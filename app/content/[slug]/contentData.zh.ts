@@ -1,6 +1,9 @@
 import type { ContentArticle } from "./contentData";
+import { geoArticles } from "@/lib/geoArticles";
+import { upgradeGrowthArticles } from "@/lib/contentUpgrades";
 
 export const zhArticles: ContentArticle[] = [
+  ...geoArticles(true),
   {
     slug: "why-no-sales",
     title: "为什么你的网站有流量却没有销量",
@@ -69,6 +72,8 @@ export const zhArticles: ContentArticle[] = [
     secondaryLinks: [{ label: "升级到 Pro，获得完整洞察", href: "/#pricing" }, { label: "获得专家帮助，解决所有问题", href: "/contact" }],
   },
 ];
+
+upgradeGrowthArticles(zhArticles, true);
 
 export function getZhArticle(slug: string) {
   return zhArticles.find((article) => article.slug === slug);

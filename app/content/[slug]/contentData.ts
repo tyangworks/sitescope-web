@@ -1,3 +1,5 @@
+import { geoArticles } from "@/lib/geoArticles";
+import { upgradeGrowthArticles } from "@/lib/contentUpgrades";
 export type ContentArticle = {
   slug: string;
   title: string;
@@ -39,6 +41,7 @@ export type ContentArticle = {
 };
 
 export const articles: ContentArticle[] = [
+  ...geoArticles(),
   {
     slug: "why-no-sales",
     title: "Why Your Website Gets Traffic But No Sales",
@@ -206,6 +209,8 @@ export const articles: ContentArticle[] = [
     ],
   },
 ];
+
+upgradeGrowthArticles(articles);
 
 export function getArticle(slug: string) {
   return articles.find((article) => article.slug === slug);

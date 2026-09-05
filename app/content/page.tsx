@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import ContentIndexContent from "./ContentIndexContent";
 
 export const metadata: Metadata = {
-  title: "Content | SiteScope",
-  description: "Conversion-focused website growth guides from SiteScope.",
+  title: "Website Growth, SEO & GEO Guides | SiteScope",
+  description: "Practical guides to search visibility, AI-search readiness, performance and website conversion.",
 };
 
 export default function ContentIndexPage() {

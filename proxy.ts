@@ -3,7 +3,11 @@ import type { NextRequest } from "next/server";
 import { refreshSupabaseSession } from "@/lib/supabase/proxy";
 
 export async function proxy(request: NextRequest) {
-  return refreshSupabaseSession(request);
+  const response = await refreshSupabaseSession(request);
+  if (/^\/(report(?:\/|$)|reports(?:\/|$)|login(?:\/|$)|auth(?:\/|$)|success(?:\/|$)|cancel(?:\/|$)|api(?:\/|$))/.test(request.nextUrl.pathname)) {
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
+  return response;
 }
 
 export const config = {
