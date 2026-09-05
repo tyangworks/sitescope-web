@@ -9,6 +9,7 @@ import { authenticatedFetch } from "@/lib/authFetch";
 import { normalizeUrlInput } from "@/lib/normalizeUrl";
 import { useTranslation } from "@/lib/i18n"; // 添加翻译 hook
 import SiteHeader from "@/app/components/SiteHeader";
+import GrowthOverview from "@/app/components/GrowthOverview";
 
 type RecentReport = {
   id: string;
@@ -103,7 +104,7 @@ export default function Home() {
       {/* 2. HERO SECTION */}
       <section id="audit" className="relative pt-20 pb-24 overflow-hidden scroll-mt-24">
         <div className="max-w-5xl mx-auto px-6 text-center">
-          <h1 className="text-5xl md:text-7xl font-black text-white mb-8 leading-[1.1] tracking-tight">
+          <h1 className="text-4xl md:text-6xl font-black text-white mb-8 leading-[1.1] tracking-normal">
             {t.home.heroTitle} <br />
             <span className="bg-gradient-to-r from-blue-400 to-teal-300 bg-clip-text text-transparent">
               {t.home.heroAccent}
@@ -195,6 +196,7 @@ export default function Home() {
         </div>
       </section>
 
+      <GrowthOverview />
       {/* 3. RECENT AUDITS (Real Data) */}
       {recentReports.length > 0 && (
         <section className="bg-[#111827]/50 py-20 border-y border-gray-800">

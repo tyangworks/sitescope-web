@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 export default function Navbar() {
   return (
@@ -12,24 +13,24 @@ export default function Navbar() {
 
         {/* MENU */}
         <div className="hidden md:flex items-center gap-6 text-sm">
-          <a href="/pricing" className="hover:opacity-70">
+          <Link href="/#pricing" className="hover:opacity-70">
             Pricing
-          </a>
-          <a href="/build" className="hover:opacity-70">
+          </Link>
+          <Link href="/services" className="hover:opacity-70">
             Build
-          </a>
-          <a href="/login" className="hover:opacity-70">
+          </Link>
+          <Link href="/login" className="hover:opacity-70">
             Sign in
-          </a>
+          </Link>
         </div>
 
         {/* CTA */}
-        <a
-          href="/audit"
+        <Link
+          href="/#audit"
           className="bg-black text-white px-4 py-2 rounded-lg text-sm hover:opacity-90"
         >
           Get Audit
-        </a>
+        </Link>
       </div>
     </nav>
   );
