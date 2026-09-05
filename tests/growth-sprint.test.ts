@@ -5,6 +5,16 @@ import { projectSearchVisibility, projectAnonymousReport, projectFreeReport } fr
 import type { RawReportDatabaseRow } from "../lib/reports/types.ts";
 import { growthPages } from "../lib/growthPages.ts";
 const source = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
+test("anonymous Top 3 prioritizes severe findings without mutating stored order", () => {
+  const raw = { seo_issues: [
+    { issue: "optional signal", priority: "low", impact: "Low" },
+    { issue: "blocked indexing", priority: "high", impact: "High" },
+    { issue: "missing metadata", impact: "High" },
+    { issue: "unclear structure", priority: "medium", impact: "Medium" },
+  ] } as unknown as RawReportDatabaseRow;
+  assert.deepEqual(projectAnonymousReport(raw).seo_issues.map((issue) => issue.issue), ["blocked indexing", "missing metadata", "unclear structure"]);
+  assert.equal((raw.seo_issues as { issue: string }[])[0].issue, "optional signal");
+});
 test("readiness projection rejects invalid scores and strips nested paid data", () => {
   const score = { version: 1, scope: "single_page", seo_score: 50, geo_score: 60, categories: { entityClarity: 50, contentStructure: 50, evidenceTrust: 50, structuredData: 50, answerability: 50, topicalAuthority: 50, fix_plans: "SECRET" }, fix_plans: "SECRET", code_snippet: "SECRET" };
   assert.ok(projectSearchVisibility(score));

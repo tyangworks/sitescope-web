@@ -22,9 +22,15 @@ function text(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+function issuePriority(value: unknown): number {
+  const item = asRecord(value);
+  const priority = text(item?.priority).toLowerCase() || text(item?.impact).toLowerCase();
+  return priority === "high" ? 0 : priority === "low" ? 2 : 1;
+}
+
 function projectIssues(value: unknown): ReportIssue[] {
   if (!Array.isArray(value)) return [];
-  return value.map(asRecord).filter(Boolean).map((item) => ({
+  return [...value].sort((a, b) => issuePriority(a) - issuePriority(b)).map(asRecord).filter(Boolean).map((item) => ({
     issue: text(item?.issue),
     impact: text(item?.impact),
     fix: text(item?.fix),
