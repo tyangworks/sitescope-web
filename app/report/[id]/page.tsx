@@ -58,6 +58,7 @@ export default function ReportDetail() {
   const isAnonymous = report?.access_level === "anonymous";
   const visibleIssues = report?.seo_issues || [];
   const fixPlans = report?.access_level === "pro" ? report.fix_plans : [];
+  const priorityLabel = (value: string) => language === "zh" ? ({ high: "高", medium: "中", low: "低" }[value.toLowerCase()] || value) : value;
 
   const loadingSteps = [
     { icon: <Globe className="w-5 h-5" />, text: t.report.loadingStructure },
@@ -86,7 +87,7 @@ export default function ReportDetail() {
       let data = await parseJsonSafe(response);
       if (!response.ok) throw new Error(data.error || "Failed to load report.");
 
-      if (data.access_level === "anonymous") {
+      if (data.access_level === "anonymous" && data.can_claim) {
         const claimResponse = await authenticatedFetch(
           `/api/reports/${encodeURIComponent(reportId)}/claim`,
           { method: "POST" },
@@ -158,13 +159,17 @@ export default function ReportDetail() {
         const redeemResult = await parseJsonSafe(redeemResponse);
 
         if (redeemResponse.ok && redeemResult.success) {
+          if (redeemResult.reportId && redeemResult.reportId !== reportId) {
+            window.location.href = redeemResult.url;
+            return;
+          }
           await fetchReport();
           toast.success("Pro Audit credit applied. Report unlocked.");
           setUnlocking(false);
           return;
         }
 
-        if (redeemResponse.status !== 404) {
+        if (redeemResponse.status !== 404 && redeemResponse.status !== 401) {
           toast("Could not check an existing Pro credit. Opening checkout instead.");
         }
       } catch {
@@ -181,6 +186,10 @@ export default function ReportDetail() {
         }),
       });
       const result = await parseJsonSafe(response);
+      if (response.status === 401) {
+        window.location.href = `/login?next=${encodeURIComponent(`/report/${reportId}`)}`;
+        return;
+      }
       if (!response.ok) {
         throw new Error(result.error || "Failed to start checkout.");
       }
@@ -473,9 +482,9 @@ export default function ReportDetail() {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white">
-                {t.report.coreIssues}
+                {isAnonymous ? t.report.coreIssues : (language === "zh" ? "全部审计发现" : "All audit findings")}
               </h2>
-              <p className="text-[#9CA3AF] text-sm">{t.report.coreIssuesSubtitle}</p>
+              <p className="text-[#9CA3AF] text-sm">{isAnonymous ? t.report.coreIssuesSubtitle : (language === "zh" ? "按当前访问权限展示完整问题列表" : "Complete issue list for your access level")}</p>
             </div>
           </div>
 
@@ -496,13 +505,13 @@ export default function ReportDetail() {
                           : "bg-blue-500/20 text-blue-400"
                     }`}
                   >
-                    {item.impact}
+                    {priorityLabel(item.impact)}
                   </span>
                 </div>
                 <div className="space-y-2">
                   <p className="text-sm text-[#9CA3AF]">
                     <span className="text-green-400 font-semibold">{t.report.impact}</span>{" "}
-                    {item.impact}
+                    {priorityLabel(item.impact)}
                   </p>
                   <p className="text-sm text-[#9CA3AF]">
                     <span className="text-[#3A8DFF] font-semibold">
@@ -650,7 +659,7 @@ export default function ReportDetail() {
                           <article key={`${category}-${index}`} className="border-t border-[#1F2937] pt-5 first:border-0 first:pt-0">
                             <div className="mb-2 flex items-start justify-between gap-3">
                               <h5 className="font-semibold text-white">{item.issue}</h5>
-                              <span className="text-xs font-bold uppercase text-[#3A8DFF]">{item.priority}</span>
+                              <span className="text-xs font-bold uppercase text-[#3A8DFF]">{priorityLabel(item.priority)}</span>
                             </div>
                             <dl className="space-y-3 text-sm leading-relaxed">
                               <div>
@@ -711,7 +720,7 @@ export default function ReportDetail() {
                               : "bg-blue-500/20 text-blue-400"
                         }`}
                       >
-                        {plan.priority.toUpperCase()} {t.report.priority.toUpperCase()}
+                        {priorityLabel(plan.priority)} {t.report.priority}
                       </span>
                     </div>
                   </div>

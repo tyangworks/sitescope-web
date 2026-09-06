@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { NextRequest, NextResponse } from "next/server";
+import { preparePurchaseReport, PurchaseAccessError } from "@/lib/reports/purchase";
 import {
   getSupabaseServerConfig,
   supabaseServiceRoleEnvMessage,
@@ -77,17 +77,18 @@ async function createStripeCheckoutSession({
   };
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const reportId = cleanText(body.reportId, 100);
-    const customerEmail = cleanText(body.customerEmail, 320).toLowerCase();
+    let reportId = cleanText(body.reportId, 100);
+    let customerEmail = cleanText(body.customerEmail, 320).toLowerCase();
     const purchaseType =
       cleanText(body.purchaseType, 50) === "pro_credit"
         ? "pro_credit"
         : "report_unlock";
 
     const user = await getRequestUser(request);
+    if (user?.email) customerEmail = user.email.toLowerCase();
     const isAdminReportUnlock = purchaseType === "report_unlock" && isAdminUser(user);
     if (purchaseType === "pro_credit" && isAdminUser(user)) {
       return NextResponse.json({
@@ -125,21 +126,6 @@ export async function POST(request: Request) {
     }
 
     if (purchaseType === "report_unlock") {
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      const { data: report, error: reportError } = await supabase
-        .from("reports")
-        .select("id, is_paid")
-        .eq("id", reportId)
-        .maybeSingle();
-
-      if (reportError) {
-        return NextResponse.json({ error: reportError.message }, { status: 500 });
-      }
-
-      if (!report) {
-        return NextResponse.json({ error: "Report not found." }, { status: 404 });
-      }
-
       if (isAdminReportUnlock) {
         return NextResponse.json({
           success: true,
@@ -149,6 +135,8 @@ export async function POST(request: Request) {
         });
       }
 
+      const report = await preparePurchaseReport(request, reportId, user?.id || null);
+      reportId = report.id;
       if (report.is_paid) {
         return NextResponse.json({
           success: true,
@@ -183,6 +171,7 @@ export async function POST(request: Request) {
       url: stripeResult.data.url,
     });
   } catch (error) {
+    if (error instanceof PurchaseAccessError) return NextResponse.json({ error: error.message }, { status: error.status });
     return NextResponse.json(
       {
         error:

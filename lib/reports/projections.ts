@@ -114,9 +114,15 @@ export function projectSearchVisibility(value: unknown): SearchVisibility | unde
   const raw = asRecord(value);
   const sub = asRecord(raw?.categories);
   const valid = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 100;
+  const scoring = asRecord(raw?.scoring);
+  const components = asRecord(scoring?.components);
+  const safeScoring = scoring?.model === "readiness-v2" && valid(scoring.score) && components && valid(components.search)
+    && (components.content === null || valid(components.content)) && (components.conversion === null || valid(components.conversion))
+    ? { model: "readiness-v2" as const, score: scoring.score, components: { search: components.search, content: components.content as number | null, conversion: components.conversion as number | null, performance: null } } : undefined;
   const keys = ["entityClarity", "contentStructure", "evidenceTrust", "structuredData", "answerability", "topicalAuthority"] as const;
   if (raw?.version !== 1 || raw.scope !== "single_page" || !valid(raw.seo_score) || !valid(raw.geo_score) || !sub || !keys.every((key) => valid(sub[key]))) return undefined;
   return { version: 1, scope: "single_page", seo_score: raw.seo_score, geo_score: raw.geo_score,
+    ...(safeScoring ? { scoring: safeScoring } : {}),
     categories: Object.fromEntries(keys.map((key) => [key, sub[key]])) as SearchVisibility["categories"],
     index_restricted: raw.index_restricted === true };
 }

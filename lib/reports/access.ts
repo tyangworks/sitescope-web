@@ -1,4 +1,5 @@
 import type { RawReportDatabaseRow, ReportAccessLevel } from "./types";
+import { isPublicReport } from "./publication.ts";
 
 export type ReportAccessContext = {
   userId: string | null;
@@ -10,13 +11,13 @@ export function getReportAccessLevel(
   context: ReportAccessContext,
 ): ReportAccessLevel {
   if (report.user_id) {
-    if (context.userId !== report.user_id) return "denied";
+    if (context.userId !== report.user_id) return isPublicReport(report) ? "anonymous" : "denied";
     return report.is_paid ? "pro" : "free";
   }
 
   if (report.anonymous_token_hash) {
     if (context.anonymousTokenHash !== report.anonymous_token_hash) {
-      return "denied";
+      return isPublicReport(report) ? "anonymous" : "denied";
     }
     return report.is_paid ? "pro" : "anonymous";
   }

@@ -434,3 +434,20 @@ Therefore:
 
 - Keep Stripe webhook processing authoritative and idempotent.
 - Do not change production schema, RLS, or deployment during this phase.
+
+
+## 2026-09-06: Scoring v2, public preview gallery, buyer ownership
+
+- Supersedes the prior AI overall-score rule: `score` is now computed from observations by `readiness-v2`, never taken from AI and never defaulted to 70 on parse failure.
+- Existing JSONB adds `search_visibility.scoring = { model, score, components, weights, measured_weight, indexing_cap }`. Web projects only allowlisted model/score/components. SEO/GEO version remains 1 for compatibility.
+- Nominal growth weights: Search 40, content 30, conversion signals 20, performance 10. Unmeasured components are null and excluded from the denominator, not assumed good/bad. Performance currently has no reliable measurement and is excluded. Search is SEO 80% + GEO 20%. Explicit noindex caps overall at 60. Identical observations produce identical scores, regardless of domain or AI output.
+- New extraction: action-control presence and mobile viewport metadata. These are readiness signals, NOT actual conversion or performance measurement. Old stored scores remain historical; re-audit to compare v2. Cache reuse requires scoring.model=readiness-v2.
+- Migration `202609060001_public_report_previews.sql` adds is_public (default false), source_report_id, a buyer/source unique index, and a service-role-only atomic credit RPC. It does not publish historical private rows or change existing report RLS.
+- Web POST /api/analyze accepts optional publishPreview:boolean, default false. Only explicit true publishes the Free preview. Existing unowned/unclaimed legacy reports remain public previews.
+- GET /api/reports/public?page=0 returns at most 3 metadata entries and nextPage:number|null, ordered by created_at/id descending. New arrivals can shift offset pages. Private reports and purchase copies are excluded. List URLs omit query/fragment/credentials.
+- Public report ID grants anonymous projection only, even when its author paid. Owners retain Free/Pro entitlement. /reports remains owner-only. can_claim is a server-computed capability hint, not client authority.
+- Non-owner purchases require login and create/reuse a private unpaid snapshot with user_id + source_report_id. Stripe metadata points to that copy. A source is_paid flag never grants a buyer entitlement. Unique upsert avoids overwriting an existing paid copy.
+- Pro credit redemption uses verified Auth identity/email and one PostgreSQL function locking the owned report and available credit. No body.email authority. No real payment or production-credit consumption is needed for local tests.
+- Crawler's obsolete create-checkout-session and redeem-pro-credit routes return 410. Current callers are Web same-origin BFF routes; Crawler Stripe webhook/finalize remain unchanged pending separate migration.
+- Contact persists before bounded notification delivery. Provider failure/timeout produces success:true, emailSent:false, deliveryStatus:unavailable; saved leads are NOT reported as failed. UI retains reference/status instead of two contradictory toasts. No automatic email retry is implied.
+- Production rollout requires the new additive/RPC migration first. Earlier report RLS lockdown remains separately approval-gated; public Free previews must come through BFF, never raw DB SELECT.

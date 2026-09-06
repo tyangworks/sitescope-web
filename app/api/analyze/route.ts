@@ -35,7 +35,7 @@ async function readJsonResponse(response: Response): Promise<AnalyzeUpstreamResp
 }
 
 export async function POST(request: NextRequest) {
-  let body: { url?: unknown; language?: unknown };
+  let body: { url?: unknown; language?: unknown; publishPreview?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
 
     const anonymousToken = user ? null : createAnonymousReportToken();
     const ownership = {
+      is_public: body.publishPreview === true,
       user_id: user?.id || null,
       anonymous_token_hash: anonymousToken
         ? hashAnonymousReportToken(anonymousToken)

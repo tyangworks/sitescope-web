@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-import { getReportAccessLevel } from "@/lib/reports/access";
+import { getReportAccessLevel, getReportClaimDecision } from "@/lib/reports/access";
 import { isAdminUser } from "@/lib/auth/admin";
 import { projectAuthorizedReport } from "@/lib/reports/projections";
 import {
@@ -42,7 +42,9 @@ export async function GET(
       return reportError(404, "REPORT_NOT_FOUND", "Report not found.");
     }
 
-    return Response.json(projectAuthorizedReport(data as RawReportDatabaseRow, accessLevel), {
+    return Response.json({ ...projectAuthorizedReport(data as RawReportDatabaseRow, accessLevel),
+      can_claim: Boolean(user && getReportClaimDecision(data as RawReportDatabaseRow, user.id, getAnonymousTokenHash(request)) === "claim"),
+    }, {
       headers: { "Cache-Control": "private, no-store" },
     });
   } catch (error) {

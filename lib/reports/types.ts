@@ -46,6 +46,8 @@ export type RawReportDatabaseRow = {
   fix_plans: unknown;
   user_id: string | null;
   anonymous_token_hash: string | null;
+  is_public?: boolean;
+  source_report_id?: string | null;
 };
 
 type PublicReportBase = {
@@ -59,6 +61,11 @@ type PublicReportBase = {
 };
 
 export type SearchVisibility = {
+  scoring?: {
+    model: "readiness-v2";
+    score: number;
+    components: { search: number; content: number | null; conversion: number | null; performance: null };
+  };
   version: 1;
   scope: "single_page";
   seo_score: number;

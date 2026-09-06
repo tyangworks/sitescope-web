@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Loader2, AlertCircle, MousePointer2 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import PublicReports from "@/app/components/PublicReports";
 import { useRouter } from "next/navigation";
 import { authenticatedFetch } from "@/lib/authFetch";
 import { normalizeUrlInput } from "@/lib/normalizeUrl";
@@ -11,12 +11,6 @@ import { useTranslation } from "@/lib/i18n"; // 添加翻译 hook
 import SiteHeader from "@/app/components/SiteHeader";
 import GrowthOverview from "@/app/components/GrowthOverview";
 
-type RecentReport = {
-  id: string;
-  url: string;
-  score: number;
-  screenshot_url: string;
-};
 
 function errorMessage(error: unknown, fallback: string) {
   if (error instanceof Error && error.message) return error.message;
@@ -29,26 +23,12 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState("");
-  const [recentReports, setRecentReports] = useState<RecentReport[]>([]);
+  const [publishPreview, setPublishPreview] = useState(false);
   const { t, language } = useTranslation(); // 添加翻译 hook
   const normalizedPreview = normalizeUrlInput(url);
 
   const loadingMessages = t.home.loadingMessages;
 
-  // Fetch recent reports for social proof
-  useEffect(() => {
-    async function fetchRecent() {
-      try {
-        const response = await fetch("/api/reports/public");
-        if (!response.ok) return;
-        const data = await response.json();
-        setRecentReports(data.reports || []);
-      } catch {
-        // Social proof is optional and must not block the audit form.
-      }
-    }
-    fetchRecent();
-  }, []);
 
   // Loading text rotation
   useEffect(() => {
@@ -80,7 +60,7 @@ export default function Home() {
       const res = await authenticatedFetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: normalizedUrl.url, language }),
+        body: JSON.stringify({ url: normalizedUrl.url, language, publishPreview }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Audit failed.");
@@ -155,6 +135,7 @@ export default function Home() {
                 )}
               </button>
             </form>
+            <label className="mt-4 flex items-start justify-center gap-2 text-left text-sm text-gray-400"><input type="checkbox" checked={publishPreview} disabled={loading} onChange={(event) => setPublishPreview(event.target.checked)} className="mt-1" />{language === "zh" ? "在首页展示我的网站与免费报告预览，Pro 内容仍需每位访客独立付费。请勿提交含隐私信息的网址。" : "Show my website and free preview in the public gallery. Pro remains a separate purchase for each reader. Do not submit private URLs."}</label>
             {error && (
               <p className="mt-4 text-red-400 font-bold flex items-center justify-center gap-1">
                 <AlertCircle className="w-4 h-4" />
@@ -197,43 +178,7 @@ export default function Home() {
       </section>
 
       <GrowthOverview />
-      {/* 3. RECENT AUDITS (Real Data) */}
-      {recentReports.length > 0 && (
-        <section className="bg-[#111827]/50 py-20 border-y border-gray-800">
-          <div className="max-w-7xl mx-auto px-6">
-            <h2 className="text-sm font-black text-gray-500 uppercase tracking-widest text-center mb-12">
-              {t.home.recentAudits}
-            </h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              {recentReports.map((report) => (
-                <Link
-                  href={`/report/${report.id}`}
-                  key={report.id}
-                  className="group bg-[#111827] rounded-2xl p-3 border border-gray-800 hover:border-gray-600 transition-all"
-                >
-                  <div className="relative aspect-video rounded-xl overflow-hidden mb-3 bg-gray-900">
-                    <Image
-                      src={report.screenshot_url}
-                      fill
-                      sizes="(min-width: 768px) 33vw, 100vw"
-                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all"
-                      alt="audit"
-                    />
-                  </div>
-                  <div className="flex justify-between items-center px-2">
-                    <span className="text-xs font-bold text-gray-400 truncate max-w-[150px]">
-                      {report.url}
-                    </span>
-                    <span className="text-xs font-black bg-blue-500/20 text-blue-300 px-2 py-1 rounded">
-                      {t.reports.score}: {report.score}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      <PublicReports />
 
       {/* 4. PAIN POINTS SECTION */}
       <section className="py-24 px-6 bg-[#0B0F1A]">

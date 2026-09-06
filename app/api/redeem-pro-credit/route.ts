@@ -1,131 +1,20 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import {
-  getSupabaseServerConfig,
-  supabaseServiceRoleEnvMessage,
-} from "@/lib/serverEnv";
+import { NextRequest, NextResponse } from "next/server";
+import { createReportServiceClient, getRequestUser } from "@/lib/reports/server";
+import { preparePurchaseReport, PurchaseAccessError } from "@/lib/reports/purchase";
 
-function cleanText(value: unknown, maxLength = 500) {
-  if (typeof value !== "string") return "";
-  return value.trim().slice(0, maxLength);
-}
-
-function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const user = await getRequestUser(request);
+    if (!user) return NextResponse.json({ error: "Sign in to use an existing Pro credit." }, { status: 401 });
     const body = await request.json();
-    const reportId = cleanText(body.reportId, 100);
-    const email = cleanText(body.email, 320).toLowerCase();
-
-    if (!reportId) {
-      return NextResponse.json({ error: "reportId is required." }, { status: 400 });
-    }
-
-    if (!isValidEmail(email)) {
-      return NextResponse.json(
-        { error: "Enter a valid email to continue." },
-        { status: 400 },
-      );
-    }
-
-    const { url: supabaseUrl, serviceRoleKey: supabaseKey } =
-      getSupabaseServerConfig();
-
-    if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json(
-        {
-          error: `Credit redemption is not configured. ${supabaseServiceRoleEnvMessage}`,
-        },
-        { status: 500 },
-      );
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { data: report, error: reportError } = await supabase
-      .from("reports")
-      .select("id, is_paid")
-      .eq("id", reportId)
-      .maybeSingle();
-
-    if (reportError) {
-      return NextResponse.json({ error: reportError.message }, { status: 500 });
-    }
-
-    if (!report) {
-      return NextResponse.json({ error: "Report not found." }, { status: 404 });
-    }
-
-    if (report.is_paid) {
-      return NextResponse.json({ success: true, alreadyUnlocked: true });
-    }
-
-    const { data: credit, error: creditError } = await supabase
-      .from("pro_audit_credits")
-      .select("id")
-      .eq("email", email)
-      .eq("status", "available")
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-
-    if (creditError) {
-      return NextResponse.json({ error: creditError.message }, { status: 500 });
-    }
-
-    if (!credit) {
-      return NextResponse.json(
-        { error: "No available Pro Audit credit found for this email." },
-        { status: 404 },
-      );
-    }
-
-    const { error: updateReportError } = await supabase
-      .from("reports")
-      .update({ is_paid: true })
-      .eq("id", reportId);
-
-    if (updateReportError) {
-      return NextResponse.json(
-        { error: updateReportError.message },
-        { status: 500 },
-      );
-    }
-
-    const { error: updateCreditError } = await supabase
-      .from("pro_audit_credits")
-      .update({
-        status: "redeemed",
-        redeemed_report_id: reportId,
-        redeemed_at: new Date().toISOString(),
-      })
-      .eq("id", credit.id)
-      .eq("status", "available");
-
-    if (updateCreditError) {
-      return NextResponse.json(
-        { error: updateCreditError.message },
-        { status: 500 },
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      redeemed: true,
-      reportId,
-    });
+    if (typeof body.reportId !== "string") return NextResponse.json({ error: "Report ID required." }, { status: 400 });
+    const report = await preparePurchaseReport(request, body.reportId, user.id);
+    const db = createReportServiceClient();
+    const { data, error } = await db.rpc("redeem_owned_pro_credit", { p_report_id: report.id, p_user_id: user.id });
+    if (error) return NextResponse.json({ error: "Credit service unavailable. No payment was taken." }, { status: 503 });
+    if (!data) return NextResponse.json({ error: "No available credit for this account." }, { status: 404 });
+    return NextResponse.json({ success: true, reportId: report.id, url: `/report/${report.id}` });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to redeem Pro Audit credit.",
-      },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: error instanceof PurchaseAccessError ? error.message : "Unable to redeem credit." }, { status: error instanceof PurchaseAccessError ? error.status : 500 });
   }
 }
