@@ -1,6 +1,6 @@
 # Growth sprint implementation
 
-Status: local implementation; production deployment and migration NOT performed.
+Status: deployed to production on 2026-09-05 following explicit operator authorization. See GROWTH_PRODUCTION_ROLLOUT.md for exact release versions, acceptance evidence, rollback, and remaining limitations.
 
 ## Runtime changes
 Crawler adds deterministic Search Visibility v1 and targeted single-page extraction. JSON is parsed without removing URL slashes. Cached reports require v1 readiness. Web sanitizes readiness with an explicit numeric allowlist and preserves Free/Pro/admin ownership boundaries. Full raw data is never added to browser payloads.
@@ -21,4 +21,4 @@ GEO score is not a ranking or citation probability. Six equally weighted dimensi
 Production-build local browser run: 390px LCP snapshot 432ms, 768px 140ms, 1440px 148ms; observed initial CLS 0. These are unthrottled local snapshots with fixture API responses, not Lighthouse scores, complete-session CLS, or field Core Web Vitals. Public internal-link checks also passed. Crawler suite: 11/11.
 Local checks: Web lint 0 errors/0 warnings, TypeScript and production build passed; 39 Web tests passed. Browser fixtures passed at 390/768/1440 widths across 11 public routes with valid canonicals, no overflow, no page exceptions, Chinese switching, menu interaction, mock audit-to-report navigation, normal-user delete absence, noindex on login and unknown-route 404. This is UI/contract fixture evidence, not live database integration or production field performance. No Lighthouse/CrUX performance score is claimed. Existing system fonts avoid a new font download; no heavy library was added.
 
-See terminal validation and tests/growth-sprint.test.ts, tests/browser-growth.mjs. Browser tests use intercepted fixtures and never submit audits/payments/leads to production. Real staging Supabase migration and end-to-end live AI/persistence remain a release gate. Production RLS lockdown from earlier phases remains a separate operator-approved action; BFF projection tests do not prove direct database RLS has been applied.
+See tests/growth-sprint.test.ts and tests/browser-growth.mjs for local fixture tests. Production acceptance subsequently verified real AI/persistence and cached anonymous report ownership. The additive migration was applied directly under the operator's production testing authorization; no staging database was provisioned. Production RLS lockdown from earlier phases remains a separate operator-approved action; BFF projection tests do not prove direct database RLS has been applied.
