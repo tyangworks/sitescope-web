@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { deliverContactNotification } from "@/lib/contactDelivery";
+export const maxDuration = 30;
 import {
   getSupabaseServerConfig,
   supabaseServiceRoleEnvMessage,
@@ -48,8 +50,9 @@ async function sendContactEmail(contactRequest: {
     return { sent: false, reason: "Email delivery is not configured." };
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
+  return deliverContactNotification(() => fetch("https://api.resend.com/emails", {
     method: "POST",
+    signal: AbortSignal.timeout(8000),
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
@@ -71,21 +74,18 @@ async function sendContactEmail(contactRequest: {
         contactRequest.message || "No message provided.",
       ].join("\n"),
     }),
-  });
-
-  if (!response.ok) {
-    return {
-      sent: false,
-      reason: `Email provider returned ${response.status}: ${await response.text()}`,
-    };
-  }
-
-  return { sent: true, reason: "" };
+  }));
 }
 
 export async function POST(request: Request) {
+  let body;
   try {
-    const body = await request.json();
+    body = await request.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
+  try {
     const contactRequest = {
       email: cleanText(body.email, 320).toLowerCase(),
       companyName: cleanText(body.companyName, 200),
@@ -160,14 +160,12 @@ export async function POST(request: Request) {
       success: true,
       id: data.id,
       emailSent: emailResult.sent,
+      deliveryStatus: emailResult.sent ? "sent" : "unavailable",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to submit contact request.",
+        error: "Failed to save contact request. Please try again.",
       },
       { status: 500 },
     );

@@ -1,7 +1,7 @@
 "use client";
 import { trackGrowth } from "@/lib/analytics";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link"; // 修复：使用默认导入
 import {
   ArrowLeft,
@@ -39,12 +39,14 @@ export default function ContactPage() {
     message: "",
   });
   const [loading, setLoading] = useState(false);
+  const submitting = useRef(false);
+  const [submission, setSubmission] = useState<{ id: string; emailSent: boolean } | null>(null);
   const { t, language } = useTranslation();
   const pageCopy = language === "zh"
     ? {
         invalidWebsite: "请输入有效的网站地址。",
         submitted: "提交成功，我们会尽快联系你。",
-        savedOnly: "信息已保存，但邮件通知暂时不可用。",
+        savedOnly: "需求已成功保存，邮件通知暂时不可用，无需重复提交。也可联系 support@sitescope.fyi。",
         submitFailed: "提交失败，请稍后重试。",
         companyPlaceholder: "你的公司名称",
         selectGoal: "选择服务类型",
@@ -64,7 +66,7 @@ export default function ContactPage() {
     : {
         invalidWebsite: "Please enter a valid website.",
         submitted: "Request submitted successfully!",
-        savedOnly: "Saved. Email notification is not configured yet.",
+        savedOnly: "Your request is saved. Email notification is temporarily unavailable; please do not resubmit. You can also contact support@sitescope.fyi.",
         submitFailed: "Failed to submit request.",
         companyPlaceholder: "Your Company Name",
         selectGoal: "Select your goal",
@@ -84,6 +86,7 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting.current) return;
 
     const normalizedWebsite = formData.website
       ? normalizeUrlInput(formData.website)
@@ -95,6 +98,8 @@ export default function ContactPage() {
     }
 
     setLoading(true);
+    submitting.current = true;
+    setSubmission(null);
 
     try {
       const response = await fetch("/api/contact", {
@@ -108,15 +113,13 @@ export default function ContactPage() {
       });
       const result = await parseJsonSafe(response);
 
-      if (!response.ok) {
+      if (!response.ok || !result.success || !result.id) {
         throw new Error(result.error || "Failed to submit request.");
       }
 
       trackGrowth("service_lead_submitted");
-      toast.success(pageCopy.submitted);
-      if (!result.emailSent) {
-        toast.message(pageCopy.savedOnly);
-      }
+      setSubmission({ id: String(result.id), emailSent: result.emailSent === true });
+      toast.success(result.emailSent ? pageCopy.submitted : pageCopy.savedOnly);
       setFormData({
         email: "",
         companyName: "",
@@ -128,6 +131,7 @@ export default function ContactPage() {
       toast.error(errorMessage(error, pageCopy.submitFailed));
     } finally {
       setLoading(false);
+      submitting.current = false;
     }
   };
 
@@ -158,6 +162,10 @@ export default function ContactPage() {
         {/* Form Card */}
         <div className="bg-[#111827] rounded-2xl p-8 border border-[#1F2937] shadow-xl">
           
+          {submission && <div role="status" className="mb-6 border-l-4 border-emerald-400 pl-4 text-emerald-200">
+            <p>{submission.emailSent ? pageCopy.submitted : pageCopy.savedOnly}</p>
+            <p className="mt-2 text-sm break-all">{language === "zh" ? "提交编号" : "Request reference"}: {submission.id}</p>
+          </div>}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
             <div>
@@ -182,7 +190,7 @@ export default function ContactPage() {
             {/* Company Name (必填) */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Company Name *
+                {language === "zh" ? "公司名称" : "Company Name"} *
               </label>
               <div className="relative">
                 <Target className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280]" />
@@ -202,7 +210,7 @@ export default function ContactPage() {
             {/* Website  (可选) */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Website (Optional)
+                {language === "zh" ? "网站（选填）" : "Website (Optional)"}
               </label>
               <div className="relative">
                 <WebIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280]" />
