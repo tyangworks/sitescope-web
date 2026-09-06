@@ -5,7 +5,11 @@ ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reports FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public can read reports" ON public.reports;
+DROP POLICY IF EXISTS "Allow public access" ON public.reports;
+DROP POLICY IF EXISTS "Enable insert for everyone" ON public.reports;
+DROP POLICY IF EXISTS "Enable read for everyone" ON public.reports;
 
+REVOKE ALL ON TABLE public.reports FROM PUBLIC;
 REVOKE ALL ON TABLE public.reports FROM anon;
 REVOKE ALL ON TABLE public.reports FROM authenticated;
 
