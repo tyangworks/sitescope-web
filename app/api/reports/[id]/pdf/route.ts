@@ -26,7 +26,7 @@ export async function GET(
   }
 
   const rendererUrl = process.env.ANALYSIS_API_URL || process.env.NEXT_PUBLIC_API_URL || "https://api.sitescope.fyi";
-  const renderSecret = process.env.PDF_RENDER_SECRET;
+  const renderSecret = process.env.PDF_RENDER_SECRET?.trim();
   if (!renderSecret) {
     return Response.json({ error: "PDF rendering is not configured.", code: "PDF_RENDER_FAILED", retryable: true }, { status: 503 });
   }
