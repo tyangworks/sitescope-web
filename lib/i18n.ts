@@ -32,6 +32,7 @@ export interface Translations {
     auditPreview: string;
     resultsTime: string;
     learnWhy: string;
+    sampleReport: string;
     recentAudits: string;
     painPointsTitle: string;
     painPointsSubtitle: string;
@@ -47,6 +48,8 @@ export interface Translations {
     pricingProTitle: string;
     pricingProDesc: string;
     pricingOneTime: string;
+    pricingLaunch: string;
+    pricingRegular: string;
     pricingBuyPro: string;
     pricingCustomTitle: string;
     pricingCustomDesc: string;
@@ -198,6 +201,7 @@ export const translations: Record<Language, Translations> = {
       auditPreview: "We will audit:",
       resultsTime: "No signup required. Clear next steps. Analysis time varies by website.",
       learnWhy: "Learn why most websites fail",
+      sampleReport: "View Sample Report",
       recentAudits: "Recently Analyzed Sites",
       painPointsTitle: "Most websites don't fail because of traffic.",
       painPointsSubtitle: "They fail because of hidden conversion killers.",
@@ -213,6 +217,8 @@ export const translations: Record<Language, Translations> = {
       pricingProTitle: "Pro",
       pricingProDesc: "Detailed SEO + GEO audit, evidence, prioritized fix plan, implementation steps, and code snippets.",
       pricingOneTime: "one-time unlock",
+      pricingLaunch: "Launch price",
+      pricingRegular: "Regular price",
       pricingBuyPro: "Buy Pro Audit",
       pricingCustomTitle: "Custom",
       pricingCustomDesc: "Full implementation & high-performance website build.",
@@ -277,7 +283,7 @@ export const translations: Record<Language, Translations> = {
       fixPlansSubtitle: "Detailed fix steps and code snippets",
       contentSuggestions: "Content Suggestions",
       contentSuggestionsSubtitle: "Suggestions to improve user experience",
-      supportUs: "Support SiteScope",
+      supportUs: "Support sitescope.fyi",
       supportUsSubtitle:
         "If this report helped you, a small PayPal donation helps us keep improving the free audit experience. Donations are optional and do not unlock extra content.",
       donate: "Donate with PayPal",
@@ -369,6 +375,7 @@ export const translations: Record<Language, Translations> = {
       auditPreview: "我们将审计：",
       resultsTime: "无需注册，获得清晰的下一步。分析时间因网站而异。",
       learnWhy: "了解为什么大多数网站无法转化",
+      sampleReport: "查看示例报告",
       recentAudits: "最近分析的网站",
       painPointsTitle: "大多数网站失败不是因为流量。",
       painPointsSubtitle: "它们失败是因为隐藏的转化杀手。",
@@ -384,6 +391,8 @@ export const translations: Record<Language, Translations> = {
       pricingProTitle: "Pro",
       pricingProDesc: "详细 SEO + GEO 审计、检测证据、优先修复计划、实施步骤和代码片段。",
       pricingOneTime: "一次性解锁",
+      pricingLaunch: "上线价格",
+      pricingRegular: "常规价格",
       pricingBuyPro: "购买 Pro 审计",
       pricingCustomTitle: "定制",
       pricingCustomDesc: "完整实施和高性能网站建设服务。",
@@ -448,7 +457,7 @@ export const translations: Record<Language, Translations> = {
       fixPlansSubtitle: "详细的修复步骤和代码片段",
       contentSuggestions: "内容建议",
       contentSuggestionsSubtitle: "提升用户体验的建议",
-      supportUs: "支持 SiteScope",
+      supportUs: "支持 sitescope.fyi",
       supportUsSubtitle:
         "如果这份报告对您有帮助，欢迎通过 PayPal 小额支持我们继续优化免费审计体验。捐赠完全自愿，不会解锁额外内容。",
       donate: "通过 PayPal 捐赠",

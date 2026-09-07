@@ -93,7 +93,7 @@ export const articles: ContentArticle[] = [
         type: "comparison",
         heading: "Guessing vs Knowing",
         leftLabel: "Guessing",
-        rightLabel: "SiteScope",
+        rightLabel: "sitescope.fyi",
         rows: [
           ["Random changes", "Data-driven insights"],
           ["Trial and error", "Clear priorities"],
@@ -194,7 +194,7 @@ export const articles: ContentArticle[] = [
       },
       {
         type: "simple",
-        heading: "That is what SiteScope does",
+        heading: "That is what sitescope.fyi does",
         paragraphs: [
           "We analyze your website and show what is broken, why it matters, and how to fix it.",
           "No more guessing. Just clarity.",

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ConfirmedCheckoutEvent } from "@/app/components/GrowthTracking";
 import { CheckCircle2, ArrowRight, AlertCircle, Globe } from "lucide-react";
+import { BRAND_NAME } from "@/lib/brand";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +72,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-teal-400">
             <Globe className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xl font-black">SiteScope</span>
+          <span className="text-xl font-black">{BRAND_NAME}</span>
         </Link>
 
         <div className="rounded-2xl border border-gray-800 bg-[#111827] p-8 shadow-2xl">
@@ -106,7 +107,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
               <p className="mt-4 leading-relaxed text-gray-300">
                 {isCreditPurchase
                   ? `We saved one Pro Audit credit for ${customerEmail}. Run an audit, then use this email to unlock the full Pro report.`
-                  : "The payment was verified with Stripe and your report is now marked as unlocked in SiteScope."}
+                : `The payment was verified with Stripe and your report is now marked as unlocked in ${BRAND_NAME}.`}
               </p>
               <Link
                 href={

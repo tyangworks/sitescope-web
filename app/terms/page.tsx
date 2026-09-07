@@ -5,7 +5,7 @@ export default function TermsPage() {
         <h1 className="text-3xl font-bold text-slate-900 mb-6">Terms of Service</h1>
         <div className="space-y-4 text-slate-600 leading-7">
           <p>
-            SiteScope provides automated website audit insights for informational and
+            sitescope.fyi provides automated website audit insights for informational and
             business optimization purposes on sitescope.fyi.
           </p>
           <p>

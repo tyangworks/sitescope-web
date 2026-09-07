@@ -44,7 +44,7 @@ async function sendContactEmail(contactRequest: {
   const apiKey = process.env.RESEND_API_KEY;
   const toEmail = process.env.CONTACT_TO_EMAIL;
   const fromEmail =
-    process.env.CONTACT_FROM_EMAIL || "SiteScope <onboarding@resend.dev>";
+    process.env.CONTACT_FROM_EMAIL || "sitescope.fyi <onboarding@resend.dev>";
 
   if (!apiKey || !toEmail) {
     return { sent: false, reason: "Email delivery is not configured." };
@@ -61,9 +61,9 @@ async function sendContactEmail(contactRequest: {
       from: fromEmail,
       to: [toEmail],
       reply_to: contactRequest.email,
-      subject: `New SiteScope contact request: ${contactRequest.companyName}`,
+      subject: `New sitescope.fyi contact request: ${contactRequest.companyName}`,
       text: [
-        "New SiteScope contact request",
+        "New sitescope.fyi contact request",
         "",
         `Company: ${contactRequest.companyName}`,
         `Email: ${contactRequest.email}`,

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Globe, Menu, X } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { authenticatedFetch } from "@/lib/authFetch";
+import { BRAND_NAME } from "@/lib/brand";
 
 export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -63,7 +64,7 @@ export default function SiteHeader() {
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-teal-400">
             <Globe className="h-5 w-5 text-white" />
           </span>
-          <span className="text-lg font-bold">SiteScope</span>
+          <span className="text-lg font-bold">{BRAND_NAME}</span>
         </Link>
 
         <div className="hidden items-center gap-3 xl:flex">

@@ -17,7 +17,7 @@ export default function GrowthOverview() {
       <h2 className="text-3xl font-bold">{zh ? "四个维度，明确下一步" : "Four areas. A clearer next step."}</h2>
       <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">{features.map(([Icon, title, description, href]) => <div key={title}><Icon className="mb-4 h-6 w-6 text-teal-300" /><h3 className="text-lg font-bold">{title}</h3><p className="mt-3 leading-relaxed text-gray-400">{description}</p><Link className="mt-4 inline-block text-blue-300 underline" href={href}>{zh ? "查看检查内容" : "Explore the checks"}</Link></div>)}</div>
       <div className="mt-12 border-t border-gray-800 pt-8">
-        <h2 className="text-2xl font-bold">{zh ? "SiteScope 如何分析网站" : "How SiteScope analyzes your website"}</h2>
+        <h2 className="text-2xl font-bold">{zh ? "sitescope.fyi 如何分析网站" : "How sitescope.fyi analyzes your website"}</h2>
         <p className="mt-4 max-w-3xl leading-relaxed text-gray-400">{zh ? "浏览器抓取页面结构、SEO、AI 搜索就绪度、内容和转化线索，AI 再解释观察。综合分按固定规则计算，并对单页审计缺少的真实用户性能、全站覆盖和真实转化数据进行可信度校准。单页分析不代表真实用户性能、全站覆盖、真实转化率或 AI 排名。" : "A browser crawl captures structure, SEO, AI-search readiness, content, and conversion signals. AI explains the observations. The calibrated score uses fixed rules and adjusts confidence where a single page cannot measure real-user performance, site-wide coverage or actual conversion rates. A single-page audit does not measure those outcomes or AI rankings."}</p>
         <Link href="/sample-report" className="mt-5 inline-block font-semibold text-teal-300 underline">{zh ? "查看示例报告" : "View a sample report"}</Link>
       </div>

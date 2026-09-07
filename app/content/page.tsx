@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import ContentIndexContent from "./ContentIndexContent";
 
 export const metadata: Metadata = {
-  title: "Website Growth, SEO & GEO Guides | SiteScope",
+  title: "Website Growth, SEO & GEO Guides | sitescope.fyi",
   description: "Practical guides to search visibility, AI-search readiness, performance and website conversion.",
 };
 

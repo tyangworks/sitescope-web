@@ -4,6 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { ExternalLink, Globe, Heart } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { BRAND_NAME } from "@/lib/brand";
+import { trackGrowth } from "@/lib/analytics";
 
 const paypalDonateUrl =
   "https://www.paypal.com/donate/?hosted_button_id=DMPQU9NWDQDYE";
@@ -23,7 +25,7 @@ export default function SiteFooter() {
         donate: "捐赠",
         donateCopy: "支持我们继续提供免费 AI 网站审计。",
         donateButton: "通过 PayPal 捐赠",
-        copyright: "© 2026 SiteScope。为增长团队打造。",
+        copyright: "© 2026 sitescope.fyi。为增长团队打造。",
       }
     : {
         tagline: "AI-powered website audits for growth teams.",
@@ -37,7 +39,7 @@ export default function SiteFooter() {
         donate: "Donate",
         donateCopy: "Support free AI website audits.",
         donateButton: "Donate with PayPal",
-        copyright: "© 2026 SiteScope. Built for growth teams.",
+        copyright: "© 2026 sitescope.fyi. Built for growth teams.",
       };
 
   return (
@@ -49,7 +51,7 @@ export default function SiteFooter() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-teal-400">
               <Globe className="h-4 w-4 text-white" />
             </div>
-            <span className="font-bold text-white">SiteScope</span>
+            <span className="font-bold text-white">{BRAND_NAME}</span>
           </div>
           <p className="text-gray-400">
             {copy.tagline}
@@ -126,6 +128,7 @@ export default function SiteFooter() {
             </div>
             <a
               href={paypalDonateUrl}
+              onClick={() => trackGrowth("donation_clicked")}
               target="_blank"
               rel="noreferrer"
               className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-gray-400 underline transition-colors hover:text-white"

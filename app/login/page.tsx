@@ -7,6 +7,7 @@ import { Globe, ArrowLeft, Loader2, Mail } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { toast } from "sonner";
 import { supabase, authProviders } from "@/lib/auth";
+import { BRAND_NAME } from "@/lib/brand";
 
 function getErrorMessage(error: unknown, fallback: string) {
   if (error instanceof Error && error.message) return error.message;
@@ -33,7 +34,7 @@ export default function LoginPage() {
 
     try {
       const next = getReturnPath();
-      trackGrowth("signup_started");
+      trackGrowth("login_started");
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -59,7 +60,7 @@ export default function LoginPage() {
     setOauthLoading(providerId);
     
     try {
-      trackGrowth("signup_started");
+      trackGrowth("login_started");
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -94,7 +95,7 @@ export default function LoginPage() {
             <div className="w-10 h-10 bg-gradient-to-r from-[#3A8DFF] to-[#00C2A8] rounded-lg flex items-center justify-center">
               <Globe className="text-white w-5 h-5" />
             </div>
-            <span className="font-bold text-white text-xl">SiteScope</span>
+            <span className="font-bold text-white text-xl">{BRAND_NAME}</span>
           </div>
 
           {/* Header */}

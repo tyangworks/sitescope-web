@@ -15,7 +15,7 @@ export default function GrowthTracking() {
   const last = useRef("");
   useEffect(() => {
     if (document.cookie.split("; ").includes("sitescope_signup_completed=1")) {
-      trackGrowth("signup_completed");
+      trackGrowth("login_completed");
       document.cookie = "sitescope_signup_completed=; Max-Age=0; Path=/; SameSite=Lax";
     }
     if (last.current === path) return;
@@ -28,6 +28,7 @@ export default function GrowthTracking() {
       const link = event.target instanceof Element ? event.target.closest("a") : null;
       const href = link?.getAttribute("href");
       if (href === "/services" || href === "/contact") trackGrowth("service_clicked");
+      if (path === "/services" && href === "/contact") trackGrowth("service_selected");
       if (href === "/pro-audit") trackGrowth("pro_upgrade_clicked");
       if (path.startsWith("/content/") && (href === "/#audit" || href === "/free-website-audit")) trackGrowth("content_audit_cta_clicked");
     };

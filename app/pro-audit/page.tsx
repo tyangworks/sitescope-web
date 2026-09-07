@@ -117,7 +117,7 @@ export default function ProAuditPage() {
           <section>
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-teal-400/10 px-4 py-2 text-sm font-black uppercase tracking-wide text-teal-200">
               <Zap className="h-4 w-4" />
-              SiteScope Pro Audit
+              sitescope.fyi Pro Audit
             </div>
             <h1 className="text-4xl font-black leading-tight tracking-tight md:text-6xl">
               {copy.title}

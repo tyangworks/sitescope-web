@@ -12,7 +12,7 @@ type Props = { article: ContentArticle; zhArticle: ContentArticle };
 export default function ContentArticleContent({ article, zhArticle }: Props) {
   const { language } = useTranslation();
   const content = language === "zh" ? zhArticle : article;
-  const back = language === "zh" ? "返回 SiteScope" : "Back to SiteScope";
+  const back = language === "zh" ? "返回 sitescope.fyi" : "Back to sitescope.fyi";
 
   return (
     <main className="min-h-screen bg-[#0B0F1A] text-white">

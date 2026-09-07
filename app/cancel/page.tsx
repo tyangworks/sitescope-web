@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, CreditCard, Globe } from "lucide-react";
+import { BRAND_NAME } from "@/lib/brand";
 
 type CancelPageProps = {
   searchParams: Promise<{ report_id?: string }>;
@@ -16,7 +17,7 @@ export default async function CancelPage({ searchParams }: CancelPageProps) {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-teal-400">
             <Globe className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xl font-black">SiteScope</span>
+          <span className="text-xl font-black">{BRAND_NAME}</span>
         </Link>
 
         <div className="rounded-2xl border border-gray-800 bg-[#111827] p-8 shadow-2xl">

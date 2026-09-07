@@ -10,6 +10,7 @@ import { normalizeUrlInput } from "@/lib/normalizeUrl";
 import { useTranslation } from "@/lib/i18n"; // 添加翻译 hook
 import SiteHeader from "@/app/components/SiteHeader";
 import GrowthOverview from "@/app/components/GrowthOverview";
+import { trackGrowth } from "@/lib/analytics";
 
 
 function errorMessage(error: unknown, fallback: string) {
@@ -55,6 +56,7 @@ export default function Home() {
     setUrl(normalizedUrl.url);
     setError("");
     setLoading(true);
+    trackGrowth("audit_submitted");
 
     try {
       const res = await authenticatedFetch("/api/analyze", {
@@ -168,12 +170,14 @@ export default function Home() {
           <p className="mt-6 text-sm text-gray-500">
             {t.home.resultsTime}
           </p>
-          <Link
-            href="/content/why-no-sales"
-            className="mt-6 inline-flex items-center justify-center rounded-full border border-teal-400/30 bg-teal-400/10 px-5 py-2 text-sm font-bold text-teal-200 transition-all hover:border-teal-300 hover:bg-teal-400/15"
-          >
-            {t.home.learnWhy}
-          </Link>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Link href="/sample-report" className="inline-flex items-center justify-center rounded-full border border-blue-400/40 bg-blue-400/10 px-5 py-2 text-sm font-bold text-blue-200 transition-all hover:border-blue-300 hover:bg-blue-400/15">
+              {t.home.sampleReport}
+            </Link>
+            <Link href="/content/why-no-sales" className="inline-flex items-center justify-center rounded-full border border-teal-400/30 bg-teal-400/10 px-5 py-2 text-sm font-bold text-teal-200 transition-all hover:border-teal-300 hover:bg-teal-400/15">
+              {t.home.learnWhy}
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -264,6 +268,9 @@ export default function Home() {
                 </div>
                 <div className="mt-1 text-sm font-normal text-gray-400">
                   {t.home.pricingOneTime}
+                </div>
+                <div className="mt-1 text-xs font-normal text-gray-500">
+                  {t.home.pricingLaunch} · {t.home.pricingRegular} $29
                 </div>
               </div>
               <Link

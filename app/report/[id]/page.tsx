@@ -32,6 +32,7 @@ import type {
   ReportIssue,
   ReportSuggestion,
 } from "@/lib/reports/types";
+import { trackGrowth } from "@/lib/analytics";
 
 const paypalDonateUrl =
   "https://www.paypal.com/donate/?hosted_button_id=DMPQU9NWDQDYE";
@@ -95,6 +96,7 @@ export default function ReportDetail() {
           { method: "POST" },
         );
         if (claimResponse.ok) {
+          trackGrowth("report_claimed");
           response = await authenticatedFetch(`/api/reports/${encodeURIComponent(reportId)}`);
           data = await parseJsonSafe(response);
           if (!response.ok) throw new Error(data.error || "Failed to load claimed report.");

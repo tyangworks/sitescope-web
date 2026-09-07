@@ -5,12 +5,12 @@ export default function PrivacyPage() {
         <h1 className="text-3xl font-bold text-slate-900 mb-6">Privacy Policy</h1>
         <div className="space-y-4 text-slate-600 leading-7">
           <p>
-            SiteScope collects website URLs submitted for analysis and stores generated
+            sitescope.fyi collects website URLs submitted for analysis and stores generated
             report data on sitescope.fyi to deliver the service.
           </p>
           <p>
             If you purchase an unlock, your email is shared with Stripe only for payment
-            processing and receipts. SiteScope does not store raw card data.
+            processing and receipts. sitescope.fyi does not store raw card data.
           </p>
           <p>
             We use service providers such as Stripe and Supabase to operate the platform.

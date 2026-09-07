@@ -40,6 +40,7 @@ export default function ContactPage() {
   });
   const [loading, setLoading] = useState(false);
   const submitting = useRef(false);
+  const contactStarted = useRef(false);
   const [submission, setSubmission] = useState<{ id: string; emailSent: boolean } | null>(null);
   const { t, language } = useTranslation();
   const pageCopy = language === "zh"
@@ -100,6 +101,7 @@ export default function ContactPage() {
     setLoading(true);
     submitting.current = true;
     setSubmission(null);
+    trackGrowth("contact_submitted");
 
     try {
       const response = await fetch("/api/contact", {
@@ -166,7 +168,7 @@ export default function ContactPage() {
             <p>{submission.emailSent ? pageCopy.submitted : pageCopy.savedOnly}</p>
             <p className="mt-2 text-sm break-all">{language === "zh" ? "提交编号" : "Request reference"}: {submission.id}</p>
           </div>}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} onChange={() => { if (!contactStarted.current) { contactStarted.current = true; trackGrowth("contact_started"); } }} className="space-y-6">
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">

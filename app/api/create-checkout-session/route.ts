@@ -48,7 +48,7 @@ async function createStripeCheckoutSession({
   params.set("line_items[0][quantity]", "1");
   params.set("metadata[purchase_type]", purchaseType);
   if (reportId) params.set("metadata[report_id]", reportId);
-  params.set("metadata[product]", "SiteScope Pro Audit");
+  params.set("metadata[product]", "sitescope.fyi Pro Audit");
   params.set(
     "success_url",
     `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
