@@ -1,6 +1,6 @@
 # Scoring, Public Reports and Contact Reliability
 
-Date: 2026-09-06. Status: local implementation; not deployed.
+Date: 2026-09-06. Status: deployed to production after validation.
 
 ## Scoring
 
@@ -15,6 +15,9 @@ observed: missing real-user performance, site-wide coverage and real conversion
 data apply a 10-point confidence adjustment in the normal case.
 Existing stored scores are not rewritten; a fresh analysis is required. The exact
 reason for the operator's historical 70-point report has not been established.
+Production crawler commit `afce575` now emits v3. A fresh example.com acceptance
+audit returned score 34 from measured score 44, with the expected 10-point
+calibration penalty.
 
 ## Publication and Purchases
 
