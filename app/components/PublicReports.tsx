@@ -22,7 +22,7 @@ export default function PublicReports() {
     return () => controller.abort();
   }, [page]);
   const move = (next: number) => { setLoading(true); setFailed(false); setPage(next); };
-  if (!loading && !failed && page === 0 && result.reports.length < 3 && result.nextPage === null) return null;
+  if (!loading && !failed && page === 0 && result.reports.length < 3) return null;
   return <section className="border-y border-gray-800 bg-[#111827]/50 py-12" aria-label={zh ? "公开审计报告" : "Public audit reports"}>
     <div className="mx-auto max-w-7xl px-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">

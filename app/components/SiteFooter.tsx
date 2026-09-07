@@ -28,7 +28,7 @@ export default function SiteFooter() {
         copyright: "© 2026 sitescope.fyi。为增长团队打造。",
       }
     : {
-        tagline: "AI-powered website audits for growth teams.",
+        tagline: "Improve website visibility, performance and conversions — across traditional search (SEO) and AI search (GEO).",
         product: "Product",
         reports: "Reports",
         legal: "Legal",
@@ -37,9 +37,9 @@ export default function SiteFooter() {
         contact: "Contact Us",
         support: "Support",
         donate: "Donate",
-        donateCopy: "Support free AI website audits.",
+        donateCopy: "Support free website growth audits.",
         donateButton: "Donate with PayPal",
-        copyright: "© 2026 sitescope.fyi. Built for growth teams.",
+        copyright: "© 2026 sitescope.fyi. Website growth audits.",
       };
 
   return (

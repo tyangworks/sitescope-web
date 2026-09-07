@@ -207,9 +207,11 @@ export default function Home() {
           <h2 className="text-4xl font-black mb-4 leading-tight text-white">
             {t.home.painPointsTitle}
           </h2>
-          <p className="text-gray-400 text-lg mb-16">
-            {t.home.painPointsSubtitle}
-          </p>
+          {t.home.painPointsSubtitle && (
+            <p className="text-gray-400 text-lg mb-16">
+              {t.home.painPointsSubtitle}
+            </p>
+          )}
           <div className="grid md:grid-cols-2 gap-6 text-left">
             <div className="p-8 bg-[#111827] rounded-2xl border border-gray-800 flex gap-4">
               <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center flex-shrink-0 text-red-400 font-bold">
@@ -283,9 +285,6 @@ export default function Home() {
                 </div>
                 <div className="mt-1 text-sm font-normal text-gray-400">
                   {t.home.pricingOneTime}
-                </div>
-                <div className="mt-1 text-xs font-normal text-gray-500">
-                  {t.home.pricingLaunch} · {t.home.pricingRegular} $29
                 </div>
               </div>
               <Link

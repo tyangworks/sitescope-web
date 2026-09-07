@@ -24,7 +24,7 @@ export default function SampleReport() {
     <p className="text-sm font-bold text-amber-300">{zh ? "虚构演示数据，不是客户报告" : "Illustrative fictional data. Not a customer report."}</p>
     <h1 className="mt-4 text-4xl font-bold">{zh ? "网站增长审计示例" : "Sample Website Growth Audit"}</h1>
     <p className="mt-6 text-xl">{zh ? "综合增长评分：68/100（演示）" : "Overall Growth Score: 68/100 (illustrative)"}</p>
-    <SearchVisibility scores={{ version: 1, scope: "single_page", seo_score: 67, geo_score: 56, categories: { entityClarity: 50, contentStructure: 67, evidenceTrust: 33, structuredData: 50, answerability: 50, topicalAuthority: 83 }, index_restricted: false }} />
+    <SearchVisibility sample scores={{ version: 1, scope: "single_page", seo_score: 67, geo_score: 56, categories: { entityClarity: 50, contentStructure: 67, evidenceTrust: 33, structuredData: 50, answerability: 50, topicalAuthority: 83 }, index_restricted: false }} />
     <h2 className="text-2xl font-bold">{zh ? "免费预览与完整报告内容示例" : "Free preview and full-report examples"}</h2>
     <p className="mt-3 text-gray-400">{zh ? "实际匿名预览最多三个问题；此演示展示全部四个审计维度。" : "An actual anonymous preview shows at most three issues. This demonstration shows all four audit areas."}</p>
     <div className="mt-6 space-y-7">{issues.map(([category, issue, priority, impact, fix]) => <section key={category} className="border-b border-gray-800 pb-6"><p className="text-sm text-teal-300">{category} · {priority}</p><h3 className="mt-2 text-xl font-semibold">{issue}</h3><p className="mt-3 text-gray-400">{impact}</p><p className="mt-2">{fix}</p></section>)}</div>

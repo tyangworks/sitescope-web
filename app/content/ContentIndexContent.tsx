@@ -14,7 +14,7 @@ export default function ContentIndexContent() {
   const localizedArticles = language === "zh" ? zhArticles : articles;
   const copy = language === "zh"
     ? { eyebrow: "增长内容", title: "了解为什么大多数网站无法转化", description: "把隐藏的网站问题转化为清晰下一步的实用指南。", read: "阅读指南" }
-    : { eyebrow: "Growth content", title: "Learn why most websites fail to convert", description: "Practical guides that turn hidden website problems into clear next steps.", read: "Read guide" };
+    : { eyebrow: "Growth content", title: "Practical Guides for Website Growth, SEO & AI Search", description: "Actionable guides for improving search visibility, performance, content and conversions.", read: "Read guide" };
 
   return (
     <main className="min-h-screen bg-[#0B0F1A] text-white">
