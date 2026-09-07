@@ -22,11 +22,11 @@ export default function PublicReports() {
     return () => controller.abort();
   }, [page]);
   const move = (next: number) => { setLoading(true); setFailed(false); setPage(next); };
-  if (!loading && !failed && !result.reports.length && page === 0) return null;
+  if (!loading && !failed && page === 0 && result.reports.length < 3 && result.nextPage === null) return null;
   return <section className="border-y border-gray-800 bg-[#111827]/50 py-12" aria-label={zh ? "公开审计报告" : "Public audit reports"}>
     <div className="mx-auto max-w-7xl px-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div><h2 className="text-xl font-bold">{t.home.recentAudits}</h2><p className="mt-2 text-sm text-gray-400">{zh ? "公开查看免费预览。每位购买者独立解锁 Pro，不共享他人的付费权益。" : "Browse free previews. Pro access is purchased separately for each reader."}</p></div>
+        <div><h2 className="text-xl font-bold">{t.home.recentAudits}</h2><p className="mt-2 text-sm text-gray-400">{zh ? "公开查看免费预览。Pro 解锁需针对该报告单独购买。" : "Browse free previews. Pro unlock is purchased separately for each report."}</p></div>
         <div className="flex items-center gap-3">
           <button type="button" disabled={loading || page === 0} onClick={() => move(page - 1)} title={zh ? "上一组报告" : "Previous reports"} aria-label={zh ? "上一组报告" : "Previous reports"} className="flex h-10 w-10 items-center justify-center rounded border border-gray-600 disabled:opacity-30"><ArrowLeft size={18} /></button>
           <span className="text-sm tabular-nums" aria-live="polite">{page + 1}</span>

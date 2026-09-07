@@ -144,17 +144,6 @@ export default function SiteFooter() {
           <div className="text-gray-600">
             {copy.copyright}
           </div>
-          <div className="mt-4 flex gap-6 md:mt-0">
-            <a href="#" className="transition-colors hover:text-gray-400">
-              Twitter
-            </a>
-            <a href="#" className="transition-colors hover:text-gray-400">
-              LinkedIn
-            </a>
-            <a href="#" className="transition-colors hover:text-gray-400">
-              GitHub
-            </a>
-          </div>
         </div>
       </div>
     </footer>

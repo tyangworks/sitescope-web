@@ -137,7 +137,7 @@ export default function Home() {
                 )}
               </button>
             </form>
-            <label className="mt-4 flex items-start justify-center gap-2 text-left text-sm text-gray-400"><input type="checkbox" checked={publishPreview} disabled={loading} onChange={(event) => setPublishPreview(event.target.checked)} className="mt-1" />{language === "zh" ? "在首页展示我的网站与免费报告预览，Pro 内容仍需每位访客独立付费。请勿提交含隐私信息的网址。" : "Show my website and free preview in the public gallery. Pro remains a separate purchase for each reader. Do not submit private URLs."}</label>
+            <label className="mt-4 flex items-start justify-center gap-2 text-left text-sm text-gray-400"><input type="checkbox" checked={publishPreview} disabled={loading} onChange={(event) => setPublishPreview(event.target.checked)} className="mt-1" />{language === "zh" ? "可选：允许这次审计的有限免费预览出现在公开报告墙中。Pro 解锁需针对该报告单独购买。请勿提交含隐私信息的网址。" : "Optional: allow a limited free preview of this audit to appear in the public gallery. Pro unlock is purchased separately for the report. Do not submit private URLs."}</label>
             {error && (
               <p className="mt-4 text-red-400 font-bold flex items-center justify-center gap-1">
                 <AlertCircle className="w-4 h-4" />
@@ -182,6 +182,23 @@ export default function Home() {
       </section>
 
       <GrowthOverview />
+      <section className="border-b border-gray-800 px-6 py-14" aria-labelledby="access-title">
+        <div className="mx-auto max-w-6xl">
+          <h2 id="access-title" className="text-2xl font-bold">{t.home.accessTitle}</h2>
+          <div className="mt-8 grid gap-6 md:grid-cols-3">
+            {[
+              [t.home.accessFree, t.home.accessFreeDesc],
+              [t.home.accessLogin, t.home.accessLoginDesc],
+              [t.home.accessPro, t.home.accessProDesc],
+            ].map(([title, description]) => (
+              <div key={title} className="rounded-lg border border-gray-800 bg-[#111827] p-6">
+                <h3 className="font-bold text-white">{title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-gray-400">{description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
       <PublicReports />
 
       {/* 4. PAIN POINTS SECTION */}
@@ -260,11 +277,9 @@ export default function Home() {
                 {t.home.pricingProDesc}
               </p>
               <div className="mb-8 text-white">
-                <div className="flex items-end justify-center gap-3">
-                  <span className="text-4xl font-black">$9</span>
-                  <span className="pb-1 text-sm font-bold text-gray-500 line-through">
-                    $29
-                  </span>
+                <div className="flex items-end justify-center gap-5">
+                  <div className="text-left"><div className="text-xs font-semibold uppercase tracking-wide text-gray-400">{t.home.pricingLaunch}</div><span className="text-4xl font-black">$9</span></div>
+                  <div className="pb-1 text-left"><div className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t.home.pricingRegular}</div><span className="text-sm font-bold text-gray-500 line-through">$29</span></div>
                 </div>
                 <div className="mt-1 text-sm font-normal text-gray-400">
                   {t.home.pricingOneTime}

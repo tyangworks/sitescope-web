@@ -33,6 +33,13 @@ export interface Translations {
     resultsTime: string;
     learnWhy: string;
     sampleReport: string;
+    accessTitle: string;
+    accessFree: string;
+    accessFreeDesc: string;
+    accessLogin: string;
+    accessLoginDesc: string;
+    accessPro: string;
+    accessProDesc: string;
     recentAudits: string;
     painPointsTitle: string;
     painPointsSubtitle: string;
@@ -202,6 +209,13 @@ export const translations: Record<Language, Translations> = {
       resultsTime: "No signup required. Clear next steps. Analysis time varies by website.",
       learnWhy: "Learn why most websites fail",
       sampleReport: "View Sample Report",
+      accessTitle: "How access works",
+      accessFree: "1. Free Audit",
+      accessFreeDesc: "No signup required. Get your score, summary, top issues, and limited recommendations.",
+      accessLogin: "2. Unlock Free Findings",
+      accessLoginDesc: "Sign in with Google or another supported method to claim the report and view your complete Free findings.",
+      accessPro: "3. Unlock Pro",
+      accessProDesc: "Buy a one-time Pro unlock for the prioritized fix plan, implementation guidance, and supported code examples.",
       recentAudits: "Recently Analyzed Sites",
       painPointsTitle: "Most websites don't fail because of traffic.",
       painPointsSubtitle: "They fail because of hidden conversion killers.",
@@ -376,6 +390,13 @@ export const translations: Record<Language, Translations> = {
       resultsTime: "无需注册，获得清晰的下一步。分析时间因网站而异。",
       learnWhy: "了解为什么大多数网站无法转化",
       sampleReport: "查看示例报告",
+      accessTitle: "报告访问方式",
+      accessFree: "1. 免费审计",
+      accessFreeDesc: "无需注册即可获得分数、摘要、主要问题和有限建议。",
+      accessLogin: "2. 解锁完整免费发现",
+      accessLoginDesc: "使用 Google 或其他支持的方式登录并认领报告，查看完整的免费分析。",
+      accessPro: "3. 解锁 Pro",
+      accessProDesc: "一次性购买 Pro，获得优先修复计划、实施指导和报告支持的代码示例。",
       recentAudits: "最近分析的网站",
       painPointsTitle: "大多数网站失败不是因为流量。",
       painPointsSubtitle: "它们失败是因为隐藏的转化杀手。",
