@@ -14,7 +14,7 @@ export default function SiteFooter() {
   const { t, language } = useTranslation();
   const copy = language === "zh"
     ? {
-        tagline: "为增长团队提供 AI 网站审计。",
+        tagline: "提升网站可见性、性能和转化——覆盖传统搜索（SEO）和 AI 搜索（GEO）。",
         product: "产品",
         reports: "报告",
         legal: "法律",
@@ -23,9 +23,9 @@ export default function SiteFooter() {
         contact: "联系我们",
         support: "支持我们",
         donate: "捐赠",
-        donateCopy: "支持我们继续提供免费 AI 网站审计。",
+        donateCopy: "支持免费的网站增长审计。",
         donateButton: "通过 PayPal 捐赠",
-        copyright: "© 2026 sitescope.fyi。为增长团队打造。",
+        copyright: "© 2026 sitescope.fyi。网站增长审计。",
       }
     : {
         tagline: "Improve website visibility, performance and conversions — across traditional search (SEO) and AI search (GEO).",

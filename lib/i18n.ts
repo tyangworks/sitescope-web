@@ -148,6 +148,9 @@ export interface Translations {
     expectedOutcome: string;
     legacyProNotice: string;
     adminProAccess: string;
+    downloadPdf: string;
+    downloadingPdf: string;
+    pdfError: string;
   };
   auth: {
     loginTitle: string;
@@ -330,6 +333,9 @@ export const translations: Record<Language, Translations> = {
       expectedOutcome: "Expected outcome",
       legacyProNotice: "This legacy report does not contain detailed findings. Run a new audit to use the upgraded Pro analyzer.",
       adminProAccess: "Administrator Pro access confirmed.",
+      downloadPdf: "Download PDF",
+      downloadingPdf: "Generating PDF...",
+      pdfError: "PDF download failed. Please try again shortly.",
     },
     auth: {
       loginTitle: "Welcome Back",
@@ -398,10 +404,10 @@ export const translations: Record<Language, Translations> = {
       accessPro: "3. 解锁 Pro",
       accessProDesc: "一次性购买 Pro，获得优先修复计划、实施指导和报告支持的代码示例。",
       recentAudits: "最近分析的网站",
-      painPointsTitle: "大多数网站失败不是因为流量。",
-      painPointsSubtitle: "它们失败是因为隐藏的转化杀手。",
+      painPointsTitle: "网站增长可能在每个阶段受阻——发现、体验、信息表达和转化。",
+      painPointsSubtitle: "",
       painPointSpeed: "加载速度慢，直接损失大量移动端转化。",
-      painPointSeo: "SEO 缺口阻碍业务获得自然增长。",
+      painPointSeo: "SEO 和 AI 搜索缺口可能降低网站的搜索可见性。",
       painPointContent: "内容过于普通，无法吸引访客并推动转化。",
       painPointCta: "行动按钮薄弱，用户路径混乱。",
       pricingTitle: "简单定价",
@@ -410,7 +416,7 @@ export const translations: Record<Language, Translations> = {
       pricingFreeButton: "免费试用",
       pricingPopular: "最受欢迎",
       pricingProTitle: "Pro",
-      pricingProDesc: "详细 SEO + GEO 审计、检测证据、优先修复计划、实施步骤和代码片段。",
+      pricingProDesc: "详细的网站增长审计，覆盖 SEO、AI 搜索（GEO）、性能、内容和转化，并提供证据、优先修复计划、实施步骤和代码片段。",
       pricingOneTime: "一次性解锁",
       pricingLaunch: "上线价格",
       pricingRegular: "常规价格",
@@ -423,7 +429,7 @@ export const translations: Record<Language, Translations> = {
       howStepUrlTitle: "输入网址",
       howStepUrlDesc: "输入网站地址，立即开始分析。",
       howStepAiTitle: "AI 分析",
-      howStepAiDesc: "我们会扫描 SEO、性能和页面结构问题。",
+      howStepAiDesc: "我们会分析搜索可见性（SEO + GEO）、性能、内容和转化信号。",
       howStepFixTitle: "获取修复计划",
       howStepFixDesc: "获得可执行的增长优化建议。",
       servicesTitle: "太忙没时间自己修复？",
@@ -508,6 +514,9 @@ export const translations: Record<Language, Translations> = {
       expectedOutcome: "预期结果",
       legacyProNotice: "这是一份旧版报告，不包含新的详细审计字段。请重新运行审计以使用升级后的 Pro 分析器。",
       adminProAccess: "已确认管理员 Pro 权限。",
+      downloadPdf: "下载 PDF",
+      downloadingPdf: "正在生成 PDF...",
+      pdfError: "PDF 下载失败，请稍后重试。",
     },
     auth: {
     loginTitle: "欢迎回来",

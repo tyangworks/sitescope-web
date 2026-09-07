@@ -13,7 +13,7 @@ export default function ContentIndexContent() {
   const [topic, setTopic] = useState("all");
   const localizedArticles = language === "zh" ? zhArticles : articles;
   const copy = language === "zh"
-    ? { eyebrow: "增长内容", title: "了解为什么大多数网站无法转化", description: "把隐藏的网站问题转化为清晰下一步的实用指南。", read: "阅读指南" }
+    ? { eyebrow: "增长内容", title: "网站增长、SEO 与 AI 搜索实用指南", description: "帮助你改善搜索可见性、性能、内容和转化的可执行指南。", read: "阅读指南" }
     : { eyebrow: "Growth content", title: "Practical Guides for Website Growth, SEO & AI Search", description: "Actionable guides for improving search visibility, performance, content and conversions.", read: "Read guide" };
 
   return (

@@ -31,5 +31,5 @@ test("content, services, audit form, and footer have Chinese variants", () => {
   assert.match(source("../app/content/[slug]/contentData.zh.ts"), /为什么你的网站有流量却没有销量/);
   assert.match(source("../app/services/ServicesContent.tsx"), /网站建设与改版/);
   assert.match(source("../app/content/[slug]/AuditUrlForm.tsx"), /无需注册/);
-  assert.match(source("../app/components/SiteFooter.tsx"), /支持我们继续提供免费 AI 网站审计/);
+  assert.match(source("../app/components/SiteFooter.tsx"), /支持免费的网站增长审计/);
 });

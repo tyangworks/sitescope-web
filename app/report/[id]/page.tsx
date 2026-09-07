@@ -50,6 +50,7 @@ export default function ReportDetail() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [unlocking, setUnlocking] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -232,6 +233,31 @@ export default function ReportDetail() {
     }
   }
 
+  async function handleDownloadPdf() {
+    if (!reportId || !isPro) return;
+    try {
+      setDownloadingPdf(true);
+      const response = await authenticatedFetch(`/api/reports/${encodeURIComponent(reportId)}/pdf?language=${language}`);
+      if (!response.ok || !response.headers.get("content-type")?.includes("application/pdf")) {
+        const result = await parseJsonSafe(response);
+        throw new Error(result.error || t.report.pdfError);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = response.headers.get("content-disposition")?.match(/filename="([^"]+)"/)?.[1] || "sitescope-growth-audit.pdf";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error: unknown) {
+      toast.error(errorMessage(error, t.report.pdfError));
+    } finally {
+      setDownloadingPdf(false);
+    }
+  }
+
   // A report page reads an existing report through the BFF. Only a fresh audit
   // should show the analysis progress copy; history links must describe a read.
   if (loading) {
@@ -383,6 +409,16 @@ export default function ReportDetail() {
               <Share2 className="w-4 h-4" />
               {t.report.share}
             </button>
+            {isPro && (
+              <button
+                onClick={handleDownloadPdf}
+                disabled={downloadingPdf}
+                className="flex items-center gap-2 text-sm font-bold bg-[#111827] text-white px-4 py-2 rounded-xl border border-[#1F2937] hover:border-[#00C2A8] disabled:opacity-60 transition-all"
+              >
+                <FileText className="w-4 h-4" />
+                {downloadingPdf ? t.report.downloadingPdf : t.report.downloadPdf}
+              </button>
+            )}
           </div>
         </div>
       </nav>

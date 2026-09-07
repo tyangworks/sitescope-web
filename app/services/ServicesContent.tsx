@@ -28,7 +28,7 @@ const copy = {
     title: "从网站审计到增长系统",
     description: "选择适合你的支持方式：发现问题、解决关键问题、重建限制增长的网站，或设计企业级定制方案。",
     services: [
-      { id: "ai-website-audit", title: "AI 网站审计", tagline: "发现问题。", description: "找出阻碍网站增长的转化、SEO、性能和页面结构问题。", points: ["AI 驱动的网站诊断", "SEO、用户体验、内容和 CTA 检查", "明确优先级，停止盲目猜测"], cta: "开始免费审计", href: "/" },
+      { id: "ai-website-audit", title: "网站增长审计", tagline: "发现问题。", description: "找出阻碍网站增长的搜索可见性（SEO + GEO）、性能、内容和转化问题。", points: ["基于证据的网站增长诊断", "SEO + GEO、性能、内容和转化检查", "明确优先级，停止盲目猜测"], cta: "开始免费审计", href: "/" },
       { id: "website-optimization", title: "网站优化", tagline: "解决问题。", description: "把审计发现转化为速度、文案、布局和转化路径上的实际改进。", points: ["性能与移动端体验优化", "以转化为目标的页面结构", "文案与内容优化"], cta: "联系我们", href: "/contact" },
       { id: "website-build-redesign", title: "网站建设与改版", tagline: "重建增长系统。", description: "围绕信任、清晰表达、转化和可衡量增长，建设或重建现代网站。", points: ["高转化网站改版", "落地页与服务页面", "现代前端开发实施"], cta: "规划网站重建", href: "/contact" },
       { id: "enterprise-solutions", title: "企业解决方案", tagline: "高级定制。", description: "为大型团队定制审计流程、报告、系统集成和持续优化方案。", points: ["定制评分与报告", "团队工作流与系统集成", "高级网站增长系统"], cta: "咨询企业方案", href: "/contact" },
