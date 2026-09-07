@@ -62,9 +62,12 @@ type PublicReportBase = {
 
 export type SearchVisibility = {
   scoring?: {
-    model: "readiness-v2";
+    model: "readiness-v3";
     score: number;
+    measured_score?: number | null;
     components: { search: number; content: number | null; conversion: number | null; performance: null };
+    calibration_penalty?: number;
+    calibration_reasons?: string[];
   };
   version: 1;
   scope: "single_page";

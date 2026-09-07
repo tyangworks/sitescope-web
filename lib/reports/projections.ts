@@ -116,9 +116,9 @@ export function projectSearchVisibility(value: unknown): SearchVisibility | unde
   const valid = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 100;
   const scoring = asRecord(raw?.scoring);
   const components = asRecord(scoring?.components);
-  const safeScoring = scoring?.model === "readiness-v2" && valid(scoring.score) && components && valid(components.search)
+  const safeScoring = scoring?.model === "readiness-v3" && valid(scoring.score) && components && valid(components.search)
     && (components.content === null || valid(components.content)) && (components.conversion === null || valid(components.conversion))
-    ? { model: "readiness-v2" as const, score: scoring.score, components: { search: components.search, content: components.content as number | null, conversion: components.conversion as number | null, performance: null } } : undefined;
+    ? { model: "readiness-v3" as const, score: scoring.score, measured_score: valid(scoring.measured_score) ? scoring.measured_score : null, calibration_penalty: typeof scoring.calibration_penalty === "number" ? scoring.calibration_penalty : 0, calibration_reasons: Array.isArray(scoring.calibration_reasons) ? scoring.calibration_reasons.filter((reason): reason is string => typeof reason === "string").slice(0, 8) : [], components: { search: components.search, content: components.content as number | null, conversion: components.conversion as number | null, performance: null } } : undefined;
   const keys = ["entityClarity", "contentStructure", "evidenceTrust", "structuredData", "answerability", "topicalAuthority"] as const;
   if (raw?.version !== 1 || raw.scope !== "single_page" || !valid(raw.seo_score) || !valid(raw.geo_score) || !sub || !keys.every((key) => valid(sub[key]))) return undefined;
   return { version: 1, scope: "single_page", seo_score: raw.seo_score, geo_score: raw.geo_score,

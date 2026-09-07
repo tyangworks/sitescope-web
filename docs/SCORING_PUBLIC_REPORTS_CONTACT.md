@@ -4,12 +4,15 @@ Date: 2026-09-06. Status: local implementation; not deployed.
 
 ## Scoring
 
-Crawler readiness-v2 ignores AI overall scores and the former 70-point fallback.
+Crawler readiness-v3 ignores AI overall scores and the former 70-point fallback.
 Search visibility combines measured SEO (80%) and GEO (20%). Overall nominal
 weights are search 40, content 30, conversion 20 and performance 10. Unmeasured
 categories are excluded and remaining weights normalized. Performance is currently
 unmeasured for this aggregate. Explicit noindex/none caps the overall score at 60.
 The formula is domain-independent, not a promise of traffic or actual conversion.
+It is intentionally calibrated below a perfect score when only one page is
+observed: missing real-user performance, site-wide coverage and real conversion
+data apply a 10-point confidence adjustment in the normal case.
 Existing stored scores are not rewritten; a fresh analysis is required. The exact
 reason for the operator's historical 70-point report has not been established.
 

@@ -436,12 +436,12 @@ Therefore:
 - Do not change production schema, RLS, or deployment during this phase.
 
 
-## 2026-09-06: Scoring v2, public preview gallery, buyer ownership
+## 2026-09-06: Scoring v3, public preview gallery, buyer ownership
 
-- Supersedes the prior AI overall-score rule: `score` is now computed from observations by `readiness-v2`, never taken from AI and never defaulted to 70 on parse failure.
+- Supersedes the prior AI overall-score rule: `score` is now computed from observations by `readiness-v3`, never taken from AI and never defaulted to 70 on parse failure. The v3 score is deliberately conservative: it applies a documented confidence adjustment for single-page scope, missing real-user performance and missing real conversion data.
 - Existing JSONB adds `search_visibility.scoring = { model, score, components, weights, measured_weight, indexing_cap }`. Web projects only allowlisted model/score/components. SEO/GEO version remains 1 for compatibility.
 - Nominal growth weights: Search 40, content 30, conversion signals 20, performance 10. Unmeasured components are null and excluded from the denominator, not assumed good/bad. Performance currently has no reliable measurement and is excluded. Search is SEO 80% + GEO 20%. Explicit noindex caps overall at 60. Identical observations produce identical scores, regardless of domain or AI output.
-- New extraction: action-control presence and mobile viewport metadata. These are readiness signals, NOT actual conversion or performance measurement. Old stored scores remain historical; re-audit to compare v2. Cache reuse requires scoring.model=readiness-v2.
+- New extraction: action-control presence and mobile viewport metadata. These are readiness signals, NOT actual conversion or performance measurement. Content checks also consider title/meta quality, heading depth and text coverage. Old stored scores remain historical; re-audit to compare v3. Cache reuse requires scoring.model=readiness-v3.
 - Migration `202609060001_public_report_previews.sql` adds is_public (default false), source_report_id, a buyer/source unique index, and a service-role-only atomic credit RPC. It does not publish historical private rows or change existing report RLS.
 - Web POST /api/analyze accepts optional publishPreview:boolean, default false. Only explicit true publishes the Free preview. Existing unowned/unclaimed legacy reports remain public previews.
 - GET /api/reports/public?page=0 returns at most 3 metadata entries and nextPage:number|null, ordered by created_at/id descending. New arrivals can shift offset pages. Private reports and purchase copies are excluded. List URLs omit query/fragment/credentials.
