@@ -45,7 +45,7 @@ try {
   assert.equal(health.status(), 200);
   const version = await context.request.get("https://api.sitescope.fyi/version");
   const metadata = await version.json();
-  assert.equal(metadata.commit, "c7fabaa297cf2d6cc578e99bb8418a462c8c20fd");
+  assert.equal(metadata.commit, process.env.EXPECTED_CRAWLER_COMMIT || "10a730b32df9c98c1620480ece88b7fab5bbb795");
   const unexpected = errors.filter((error) => !(error.path === "/api/reports" && /401/.test(error.message)));
   assert.deepEqual(unexpected, []);
   console.log(JSON.stringify({ results, publicConsoleErrors, expectedAnonymousHistoryRejections: errors.length, anonymousHistory: history.status(), version: metadata }));
