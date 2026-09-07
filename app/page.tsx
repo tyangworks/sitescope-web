@@ -66,7 +66,7 @@ export default function Home() {
       if (!res.ok) throw new Error(data.error || "Audit failed.");
 
       // Redirect to report detail page
-      router.push(`/report/${data.id}`);
+      router.push(`/report/${data.id}?from=audit`);
     } catch (error: unknown) {
       setError(
         errorMessage(

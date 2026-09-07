@@ -76,7 +76,7 @@ export default function SiteHeader() {
           </nav>
           {languageSwitcher()}
           <Link
-            href={signedIn ? "/reports" : "/login"}
+            href={signedIn ? "/account" : "/login"}
             className="whitespace-nowrap px-2 py-2 text-sm font-semibold text-gray-300 hover:text-white"
           >
             {signedIn ? (language === "zh" ? "账户" : "Account") : t.nav.login}
@@ -111,7 +111,7 @@ export default function SiteHeader() {
             <div className="grid gap-3 pt-3 sm:grid-cols-2">
               {languageSwitcher(true)}
               <Link
-                href={signedIn ? "/reports" : "/login"}
+                href={signedIn ? "/account" : "/login"}
                 onClick={() => setMenuOpen(false)}
                 className="flex min-h-10 items-center justify-center px-4 py-2 text-sm font-semibold text-gray-300"
               >

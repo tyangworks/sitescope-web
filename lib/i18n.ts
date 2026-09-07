@@ -75,6 +75,8 @@ export interface Translations {
   report: {
     analyzing: string;
     estimatedTime: string;
+    loadingReport: string;
+    loadingReportDesc: string;
     loadingStructure: string;
     loadingPerformance: string;
     loadingSeo: string;
@@ -240,6 +242,8 @@ export const translations: Record<Language, Translations> = {
     report: {
       analyzing: "Analyzing Your Website",
       estimatedTime: "Estimated time: 20-30 seconds. Real value takes time.",
+      loadingReport: "Loading Your Report",
+      loadingReportDesc: "Fetching the saved analysis securely.",
       loadingStructure: "Fetching site structure",
       loadingPerformance: "Running performance tests",
       loadingSeo: "Checking SEO signals",
@@ -409,6 +413,8 @@ export const translations: Record<Language, Translations> = {
     report: {
       analyzing: "正在分析你的网站",
       estimatedTime: "预计时间：20-30秒。真正的价值需要时间。",
+      loadingReport: "正在加载报告",
+      loadingReportDesc: "正在安全读取已保存的分析结果。",
       loadingStructure: "正在获取网站结构",
       loadingPerformance: "正在运行性能测试",
       loadingSeo: "正在检查 SEO 信号",

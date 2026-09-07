@@ -51,7 +51,7 @@ export default function AuditUrlForm({
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || (language === "zh" ? "审计启动失败" : "Audit failed"));
-      router.push(`/report/${result.id}`);
+      router.push(`/report/${result.id}?from=audit`);
     } catch (error: unknown) {
       setError(errorMessage(error, language === "zh" ? "无法启动审计，请重试。" : "Could not start the audit. Please try again."));
       setLoading(false);

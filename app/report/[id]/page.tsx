@@ -2,7 +2,7 @@
 import SearchVisibility from "@/app/components/SearchVisibility";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   Lightbulb,
@@ -43,6 +43,7 @@ function errorMessage(error: unknown, fallback: string) {
 
 export default function ReportDetail() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const { t, language } = useTranslation();
   const [report, setReport] = useState<AuthorizedReportResponse | null>(null);
   const [email, setEmail] = useState("");
@@ -54,6 +55,7 @@ export default function ReportDetail() {
   const loadingStep = 0;
 
   const reportId = String(params.id || "");
+  const isFreshAudit = searchParams.get("from") === "audit";
   const isPro = report?.access_level === "pro";
   const isAnonymous = report?.access_level === "anonymous";
   const visibleIssues = report?.seo_issues || [];
@@ -228,7 +230,8 @@ export default function ReportDetail() {
     }
   }
 
-  // Loading state with step progress
+  // A report page reads an existing report through the BFF. Only a fresh audit
+  // should show the analysis progress copy; history links must describe a read.
   if (loading) {
     return (
       <main className="min-h-screen bg-[#0B0F1A] flex items-center justify-center p-6">
@@ -238,62 +241,72 @@ export default function ReportDetail() {
           </div>
 
           <h2 className="text-2xl font-bold text-white mb-4">
-            {t.report.analyzing}
+            {isFreshAudit ? t.report.analyzing : t.report.loadingReport}
           </h2>
           <p className="text-[#9CA3AF] mb-8">
-            {t.report.estimatedTime}
+            {isFreshAudit ? t.report.estimatedTime : t.report.loadingReportDesc}
           </p>
 
-          <div className="space-y-4">
-            {loadingSteps.map((step, index) => (
-              <div
-                key={index}
-                className={`flex items-center gap-4 p-4 rounded-xl transition-all ${
-                  index === loadingStep
-                    ? "bg-[#111827] border border-[#3A8DFF] pulse-glow"
-                    : index < loadingStep
-                      ? "bg-[#111827] border border-[#00C2A8]"
-                      : "bg-[#111827] border border-[#1F2937] opacity-50"
-                }`}
-              >
-                <div
-                  className={`flex-shrink-0 ${
-                    index === loadingStep
-                      ? "text-[#3A8DFF]"
-                      : index < loadingStep
-                        ? "text-[#00C2A8]"
-                        : "text-[#6B7280]"
-                  }`}
-                >
-                  {index < loadingStep ? (
-                    <CheckCircle2 className="w-5 h-5" />
-                  ) : (
-                    step.icon
-                  )}
-                </div>
-                <span
-                  className={`text-sm font-medium ${
-                    index === loadingStep
-                      ? "text-white"
-                      : index < loadingStep
-                        ? "text-[#00C2A8]"
-                        : "text-[#6B7280]"
-                  }`}
-                >
-                  {step.text}
-                </span>
+          {isFreshAudit ? (
+            <>
+              <div className="space-y-4">
+                {loadingSteps.map((step, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center gap-4 p-4 rounded-xl transition-all ${
+                      index === loadingStep
+                        ? "bg-[#111827] border border-[#3A8DFF] pulse-glow"
+                        : index < loadingStep
+                          ? "bg-[#111827] border border-[#00C2A8]"
+                          : "bg-[#111827] border border-[#1F2937] opacity-50"
+                    }`}
+                  >
+                    <div
+                      className={`flex-shrink-0 ${
+                        index === loadingStep
+                          ? "text-[#3A8DFF]"
+                          : index < loadingStep
+                            ? "text-[#00C2A8]"
+                            : "text-[#6B7280]"
+                      }`}
+                    >
+                      {index < loadingStep ? (
+                        <CheckCircle2 className="w-5 h-5" />
+                      ) : (
+                        step.icon
+                      )}
+                    </div>
+                    <span
+                      className={`text-sm font-medium ${
+                        index === loadingStep
+                          ? "text-white"
+                          : index < loadingStep
+                            ? "text-[#00C2A8]"
+                            : "text-[#6B7280]"
+                      }`}
+                    >
+                      {step.text}
+                    </span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div className="mt-8 w-full h-2 bg-[#111827] rounded-full overflow-hidden">
-            <div
-              className="h-full gradient-bg transition-all duration-500"
-              style={{
-                width: `${((loadingStep + 1) / loadingSteps.length) * 100}%`,
-              }}
-            />
-          </div>
+              <div className="mt-8 w-full h-2 bg-[#111827] rounded-full overflow-hidden">
+                <div
+                  className="h-full gradient-bg transition-all duration-500"
+                  style={{
+                    width: `${((loadingStep + 1) / loadingSteps.length) * 100}%`,
+                  }}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="mx-auto mt-8 max-w-sm rounded-xl border border-[#1F2937] bg-[#111827] p-5 text-sm text-[#9CA3AF]">
+              {language === "zh"
+                ? "正在从你的报告历史中读取已保存的结果。"
+                : "Reading the saved result from your report history."}
+            </div>
+          )}
         </div>
       </main>
     );
